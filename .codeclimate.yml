@@ -1,0 +1,18 @@
+engines:
+  rubocop:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+      - ruby
+  eslint:
+    enabled: true
+
+ratings:
+  paths:
+  - "lib/**"
+  - "**.rb"
+
+exclude_paths:
+- "spec/**/*"

@@ -1,0 +1,7 @@
+.DS_Store
+pkg
+.bundle
+.rvmrc
+Gemfile.lock
+coverage
+*.gem

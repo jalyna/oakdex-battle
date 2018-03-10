@@ -1,0 +1,20 @@
+language: "ruby"
+
+rvm:
+  - "2.0"
+  - "2.5.0"
+
+sudo: false
+
+install:
+  - bundle install --retry=3
+
+script:
+  - bundle exec rspec
+
+addons:
+  code_climate:
+    #repo_token:
+
+after_success:
+  - bundle exec codeclimate-test-reporter
