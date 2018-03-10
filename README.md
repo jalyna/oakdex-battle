@@ -1,5 +1,6 @@
 # <img src="https://v20.imgup.net/oakdex_logfbad.png" alt="fixer" width=282>
 
+[![Build Status](https://travis-ci.org/jalyna/oakdex-battle.svg?branch=master)](https://travis-ci.org/jalyna/oakdex-battle) [![Maintainability](https://api.codeclimate.com/v1/badges/ef91681257a6900f03ac/maintainability)](https://codeclimate.com/github/jalyna/oakdex-battle/maintainability) [![Test Coverage](https://api.codeclimate.com/v1/badges/ef91681257a6900f03ac/test_coverage)](https://codeclimate.com/github/jalyna/oakdex-battle/test_coverage)
 
 Based on [oakdex-pokedex](https://github.com/jalyna/oakdex-pokedex).
 
