@@ -94,14 +94,15 @@ module Oakdex
 
       def gender
         return @options[:gender] if @options[:gender]
-        if @species.gender_ratios
-          if rand(1..1000) <= @species.gender_ratios['male'] * 10
-            'male'
-          else
-            'female'
-          end
+        return 'neuter' unless @species.gender_ratios
+        calculate_gender
+      end
+
+      def calculate_gender
+        if rand(1..1000) <= @species.gender_ratios['male'] * 10
+          'male'
         else
-          'neuter'
+          'female'
         end
       end
 

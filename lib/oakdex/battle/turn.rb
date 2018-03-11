@@ -19,7 +19,7 @@ module Oakdex
         if hitting?(action)
           @battle.add_to_log 'uses_move', action.trainer.name,
                              action.pokemon.name, action.move.name
-          # TODO do damage
+          # TODO: do damage
         else
           @battle.add_to_log 'move_does_not_hit', action.trainer.name,
                              action.pokemon.name, action.move.name
