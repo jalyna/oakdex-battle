@@ -85,11 +85,11 @@ describe Oakdex::Battle::Pokemon do
     end
 
     before do
-      allow(Oakdex::Pokedex::Pokemon).to receive(:find)
+      allow(Oakdex::Pokedex::Pokemon).to receive(:find!)
         .with(species_name).and_return(species)
-      allow(Oakdex::Pokedex::Ability).to receive(:find)
+      allow(Oakdex::Pokedex::Ability).to receive(:find!)
         .with(ability_name).and_return(ability)
-      allow(Oakdex::Pokedex::Move).to receive(:find)
+      allow(Oakdex::Pokedex::Move).to receive(:find!)
         .with('Move1').and_return(move_type)
       allow(Oakdex::Battle::Move).to receive(:new)
         .with(move_type, move_type.pp, move_type.pp).and_return(move)
@@ -162,7 +162,7 @@ describe Oakdex::Battle::Pokemon do
       end
 
       before do
-        allow(Oakdex::Pokedex::Move).to receive(:find)
+        allow(Oakdex::Pokedex::Move).to receive(:find!)
           .with('MyMove').and_return(move_type)
         allow(Oakdex::Battle::Move).to receive(:new)
           .with(move_type, 20, 30).and_return(move)

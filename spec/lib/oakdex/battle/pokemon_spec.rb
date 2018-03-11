@@ -8,7 +8,7 @@ describe Oakdex::Battle::Pokemon do
     let(:species) { double(:species) }
 
     before do
-      allow(Oakdex::Pokedex::Pokemon).to receive(:find)
+      allow(Oakdex::Pokedex::Pokemon).to receive(:find!)
         .with(species_name).and_return(species)
       allow(Oakdex::Battle::PokemonFactory).to receive(:create)
         .with(species, options).and_return(pokemon)

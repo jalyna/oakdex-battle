@@ -41,10 +41,10 @@ pok2 = Oakdex::Battle::Pokemon.create('Bulbasaur', {
 pok3 = Oakdex::Battle::Pokemon.create('Altaria', level: 20)
 pok4 = Oakdex::Battle::Pokemon.create('Elekid', level: 14)
 
-trainer1 = Oakdex::Battle::Trainer.new([pok1])
-trainer2 = Oakdex::Battle::Trainer.new([pok2])
-trainer3 = Oakdex::Battle::Trainer.new([pok3])
-trainer4 = Oakdex::Battle::Trainer.new([pok4])
+trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1])
+trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2])
+trainer3 = Oakdex::Battle::Trainer.new('Jessie', [pok3])
+trainer4 = Oakdex::Battle::Trainer.new('James', [pok4])
 
 battle = Oakdex::Battle.new([trainer1], [trainer2]) # 1v1
 battle = Oakdex::Battle.new([trainer1], [trainer2], type: :double)

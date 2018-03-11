@@ -9,7 +9,7 @@ module Oakdex
       BATTLE_STATS = %i[hp atk def sp_atk sp_def speed]
 
       def self.create(species_name, options = {})
-        species = Oakdex::Pokedex::Pokemon.find(species_name)
+        species = Oakdex::Pokedex::Pokemon.find!(species_name)
         Oakdex::Battle::PokemonFactory.create(species, options)
       end
 

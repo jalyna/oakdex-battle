@@ -25,14 +25,14 @@ module Oakdex
         if @options[:moves]
           @options[:moves].map do |move_data|
             Move.new(
-              Oakdex::Pokedex::Move.find(move_data[0]),
+              Oakdex::Pokedex::Move.find!(move_data[0]),
               move_data[1],
               move_data[2]
             )
           end
         else
           available_moves.sample(4).map do |move_name|
-            move_type = Oakdex::Pokedex::Move.find(move_name)
+            move_type = Oakdex::Pokedex::Move.find!(move_name)
             Move.new(move_type, move_type.pp, move_type.pp)
           end
         end
@@ -46,9 +46,9 @@ module Oakdex
 
       def ability
         if @options['ability']
-          Oakdex::Pokedex::Ability.find(@options['ability'])
+          Oakdex::Pokedex::Ability.find!(@options['ability'])
         else
-          Oakdex::Pokedex::Ability.find(abilities.sample['name'])
+          Oakdex::Pokedex::Ability.find!(abilities.sample['name'])
         end
       end
 
@@ -107,7 +107,7 @@ module Oakdex
 
       def nature(options = {})
         @nature ||= if options[:nature]
-                      Oakdex::Pokedex::Nature.find(options[:nature])
+                      Oakdex::Pokedex::Nature.find!(options[:nature])
                     else
                       Oakdex::Pokedex::Nature.all.values.sample
                     end
