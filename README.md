@@ -9,9 +9,9 @@ Based on [oakdex-pokedex](https://github.com/jalyna/oakdex-pokedex).
 ```ruby
 require 'oakdex/battle'
 
-pok1 = Oakdex::Battle::Pokemon.new('Eevee', level: 10)
-pok2 = Oakdex::Battle::Pokemon.new('Bulbasaur', {
-  level: 12,
+pok1 = Oakdex::Battle::Pokemon.create('Eevee', level: 10)
+pok2 = Oakdex::Battle::Pokemon.create('Bulbasaur', {
+  exp: 120,
   gender: 'female',
   ability: 'Soundproof',
   nature: 'Bashful',
@@ -35,23 +35,23 @@ pok2 = Oakdex::Battle::Pokemon.new('Bulbasaur', {
   },
   moves: [
     ['Swords Dance', 12, 30],
-    ['Cut', 48, 44]
+    ['Cut', 40, 44]
   ]
 })
-pok3 = Oakdex::Battle::Pokemon.new('Altaria', level: 20)
-pok4 = Oakdex::Battle::Pokemon.new('Elekid', level: 14)
+pok3 = Oakdex::Battle::Pokemon.create('Altaria', level: 20)
+pok4 = Oakdex::Battle::Pokemon.create('Elekid', level: 14)
 
 trainer1 = Oakdex::Battle::Trainer.new([pok1])
 trainer2 = Oakdex::Battle::Trainer.new([pok2])
 trainer3 = Oakdex::Battle::Trainer.new([pok3])
 trainer4 = Oakdex::Battle::Trainer.new([pok4])
 
-battle = Oakdex::Battle::Battle.new([trainer1], [trainer2]) # 1v1
-battle = Oakdex::Battle::Battle.new([trainer1], [trainer2], type: :double)
-battle = Oakdex::Battle::Battle.new([trainer1], [trainer2], type: :triple)
-battle = Oakdex::Battle::Battle.new([trainer1], [trainer2], type: :horde)
+battle = Oakdex::Battle.new([trainer1], [trainer2]) # 1v1
+battle = Oakdex::Battle.new([trainer1], [trainer2], type: :double)
+battle = Oakdex::Battle.new([trainer1], [trainer2], type: :triple)
+battle = Oakdex::Battle.new([trainer1], [trainer2], type: :horde)
 
-battle = Oakdex::Battle::Battle.new([trainer1, trainer3], [trainer2, trainer4], type: :double)
+battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4], type: :double)
 
 battle.choose_action
 battle.choose_action
