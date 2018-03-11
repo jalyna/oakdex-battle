@@ -6,10 +6,12 @@ Based on [oakdex-pokedex](https://github.com/jalyna/oakdex-pokedex).
 
 ## Getting Started
 
+### 1 vs. 1
+
 ```ruby
 require 'oakdex/battle'
 
-pok1 = Oakdex::Battle::Pokemon.create('Eevee', level: 10)
+pok1 = Oakdex::Battle::Pokemon.create('Pikachu', level: 10)
 pok2 = Oakdex::Battle::Pokemon.create('Bulbasaur', {
   exp: 120,
   gender: 'female',
@@ -38,32 +40,52 @@ pok2 = Oakdex::Battle::Pokemon.create('Bulbasaur', {
     ['Cut', 40, 44]
   ]
 })
-pok3 = Oakdex::Battle::Pokemon.create('Altaria', level: 20)
-pok4 = Oakdex::Battle::Pokemon.create('Elekid', level: 14)
 
 trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1])
 trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2])
+
+battle = Oakdex::Battle.new(trainer1, trainer2)
+battle.continue # => true
+battle.log.size # => 1
+battle.log.last # => [['sends_to_battle', 'Ash', 'Pikachu'], ['sends_to_battle', 'Misty', 'Bulbasaur']]
+battle.arena # => Snapshot of current state as Hash
+battle.finished? # => false
+battle.valid_actions_for(trainer1) # => [{ action: 'move', pokemon: pok1, move: 'Thunder Shock', target: pok2 }, ...]
+
+battle.add_action(trainer1, { action: 'move', pokemon: pok1, move: 'Thunder Storm', target: pok2 }) # => false
+
+battle.add_action(trainer1, { action: 'move', pokemon: pok1, move: 'Thunder Shock', target: pok2 }) # => true
+
+battle.valid_actions_for(trainer1) # => []
+battle.continue # => false
+battle.simulate_action(trainer2) # => true
+battle.valid_actions_for(trainer2) # => []
+battle.continue # => true
+
+battle.log.size # => 2
+battle.log.last # => [['uses_move', 'Ash', 'Pikachu', 'Thunder Shock'], ['received_damage', 'Misty', 'Bulbasaur', 'Thunder Shock'], ['uses_move', 'Misty', 'Bulbasaur', 'Leech Seed'], ['move_failed', 'Misty', 'Bulbasaur', 'Leech Seed']]
+
+# ...
+
+battle.finished? # => true
+battle.winner # => trainer1
+```
+
+
+### Other Battle types
+
+```ruby
+pok3 = Oakdex::Battle::Pokemon.create('Altaria', level: 20)
+pok4 = Oakdex::Battle::Pokemon.create('Elekid', level: 14)
 trainer3 = Oakdex::Battle::Trainer.new('Jessie', [pok3])
 trainer4 = Oakdex::Battle::Trainer.new('James', [pok4])
+
+battle2 = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4], type: :double)
 
 battle = Oakdex::Battle.new([trainer1], [trainer2]) # 1v1
 battle = Oakdex::Battle.new([trainer1], [trainer2], type: :double)
 battle = Oakdex::Battle.new([trainer1], [trainer2], type: :triple)
 battle = Oakdex::Battle.new([trainer1], [trainer2], type: :horde)
-
-battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4], type: :double)
-
-battle.choose_action
-battle.choose_action
-battle.next_turn
-
-battle.choose_action
-battle.choose_action
-battle.next_turn
-
-battle.ended?
-battle.log
-battle.winner # => trainer2
 ```
 
 
