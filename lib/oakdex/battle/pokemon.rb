@@ -1,3 +1,4 @@
+require 'forwardable'
 require 'oakdex/battle/pokemon_stat'
 require 'oakdex/battle/move'
 require 'oakdex/battle/pokemon_factory'
@@ -6,7 +7,11 @@ module Oakdex
   class Battle
     # Represents detailed pokemon instance
     class Pokemon
+      extend Forwardable
+
       BATTLE_STATS = %i[hp atk def sp_atk sp_def speed]
+
+      def_delegators :@species, :types
 
       def self.create(species_name, options = {})
         species = Oakdex::Pokedex::Pokemon.find!(species_name)
@@ -35,11 +40,15 @@ module Oakdex
       end
 
       def accuracy
-        1
+        1.0 # TODO: add stages
       end
 
       def evasion
-        1
+        1.0 # TODO: add stages
+      end
+
+      def critical_hit_prob
+        Rational(1, 16) # TODO: add stages
       end
 
       BATTLE_STATS.each do |stat|

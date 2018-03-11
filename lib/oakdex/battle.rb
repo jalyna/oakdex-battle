@@ -3,6 +3,7 @@ require 'oakdex/pokedex'
 require 'oakdex/battle/pokemon'
 require 'oakdex/battle/trainer'
 require 'oakdex/battle/action'
+require 'oakdex/battle/damage'
 require 'oakdex/battle/turn'
 
 module Oakdex

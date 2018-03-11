@@ -106,4 +106,17 @@ describe Oakdex::Battle::Pokemon do
   describe '#evasion' do
     it { expect(subject.evasion).to eq(1) }
   end
+
+  describe '#critical_hit_prob' do
+    it { expect(subject.critical_hit_prob).to eq(Rational(1, 16)) }
+  end
+
+  %i[types].each do |field|
+    describe "##{field}" do
+      it {
+        expect(subject.public_send(field))
+        .to eq(species.public_send(field))
+      }
+    end
+  end
 end

@@ -12,7 +12,7 @@ describe Oakdex::Battle::Move do
     it { expect(subject.pp).to eq(30) }
   end
 
-  %i[target priority accuracy].each do |attr|
+  %i[target priority accuracy category power type].each do |attr|
     describe "##{attr}" do
       it {
         expect(subject.public_send(attr))
