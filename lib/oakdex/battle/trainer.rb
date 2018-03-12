@@ -6,6 +6,7 @@ module Oakdex
 
       def initialize(name, team)
         @name = name
+        team.each { |p| p.trainer = self }
         @team = team
       end
     end

@@ -64,4 +64,23 @@ describe Oakdex::Battle::Action do
       it { expect(subject.hitting_probability).to eq(1250) }
     end
   end
+
+  describe '#hitting?' do
+    let(:rand_number) { 500 }
+
+    before do
+      allow(subject).to receive(:rand).with(1..1000).and_return(rand_number)
+    end
+
+    it { expect(subject).to be_hitting }
+
+    context 'not hitting' do
+      let(:rand_number) { 1001 }
+      it { expect(subject).not_to be_hitting }
+    end
+  end
+
+  describe '#execute' do
+    pending
+  end
 end

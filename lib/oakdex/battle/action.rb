@@ -1,7 +1,13 @@
+require 'forwardable'
+
 module Oakdex
   class Battle
     # Represents one Action. One turn has many actions.
     class Action
+      extend Forwardable
+
+      def_delegators :@turn, :battle
+
       attr_reader :trainer
 
       def initialize(trainer, attributes)
@@ -23,6 +29,40 @@ module Oakdex
 
       def hitting_probability
         ((move.accuracy / 100.0) * (pokemon.accuracy / target.evasion)) * 1000
+      end
+
+      def hitting?
+        @hitting = rand(1..1000) <= hitting_probability ? 1 : 0
+        @hitting == 1
+      end
+
+      def execute(turn)
+        @turn = turn
+        if hitting?
+          add_uses_move_log
+          @damage = Damage.new(@turn, self)
+          add_received_damage_log if @damage.damage > 0
+        else
+          add_move_does_not_hit_log
+        end
+      end
+
+      private
+
+      def add_log(*args)
+        battle.add_to_log(*args)
+      end
+
+      def add_uses_move_log
+        add_log 'uses_move', trainer.name, pokemon.name, move.name
+      end
+
+      def add_move_does_not_hit_log
+        add_log 'move_does_not_hit', trainer.name, pokemon.name, move.name
+      end
+
+      def add_received_damage_log
+        add_log 'received_damage', target.trainer.name, target.name, move.name
       end
     end
   end

@@ -42,57 +42,33 @@ describe Oakdex::Battle::Turn do
     let(:move2_prio) { 0 }
     let(:pokemon1_speed) { 100 }
     let(:pokemon2_speed) { 100 }
-    let(:hitting_probability1) { 500 }
-    let(:hitting_probability2) { 500 }
-    let(:hitting_rand1) { 500 }
-    let(:hitting_rand2) { 500 }
 
     before do
       allow(pokemon1).to receive(:speed).and_return(pokemon1_speed)
       allow(pokemon2).to receive(:speed).and_return(pokemon2_speed)
       allow(pokemon1.moves.first).to receive(:priority).and_return(move1_prio)
       allow(pokemon2.moves.first).to receive(:priority).and_return(move2_prio)
-      allow(action1).to receive(:hitting_probability)
-        .and_return(hitting_probability1)
-      allow(action2).to receive(:hitting_probability)
-        .and_return(hitting_probability2)
-      allow(subject).to receive(:rand).with(1..1000).and_return(hitting_rand1)
-      allow(subject).to receive(:rand).with(1..1000).and_return(hitting_rand2)
     end
 
-    it 'adds to logs' do
-      expect(battle).to receive(:add_to_log)
-        .with('uses_move', 'Ash', 'Pikachu', 'Thunder Shock')
+    it 'does actions in correct order' do
+      expect(action1).to receive(:execute)
+        .with(subject)
         .ordered
-      expect(battle).to receive(:add_to_log)
-        .with('uses_move', 'Misty', 'Bulbasaur', 'Tackle')
+      expect(action2).to receive(:execute)
+        .with(subject)
         .ordered
       subject.execute
-    end
-
-    context 'move 1 is not hitting' do
-      let(:hitting_probability1) { 400 }
-
-      it 'adds to logs' do
-        expect(battle).to receive(:add_to_log)
-          .with('move_does_not_hit', 'Ash', 'Pikachu', 'Thunder Shock')
-          .ordered
-        expect(battle).to receive(:add_to_log)
-          .with('uses_move', 'Misty', 'Bulbasaur', 'Tackle')
-          .ordered
-        subject.execute
-      end
     end
 
     context 'move 2 has higher prio' do
       let(:move2_prio) { 2 }
 
-      it 'adds to logs' do
-        expect(battle).to receive(:add_to_log)
-          .with('uses_move', 'Misty', 'Bulbasaur', 'Tackle')
+      it 'does actions in correct order' do
+        expect(action2).to receive(:execute)
+          .with(subject)
           .ordered
-        expect(battle).to receive(:add_to_log)
-          .with('uses_move', 'Ash', 'Pikachu', 'Thunder Shock')
+        expect(action1).to receive(:execute)
+          .with(subject)
           .ordered
         subject.execute
       end
@@ -102,12 +78,12 @@ describe Oakdex::Battle::Turn do
       let(:move1_prio) { 0 }
       let(:pokemon2_speed) { 110 }
 
-      it 'adds to logs' do
-        expect(battle).to receive(:add_to_log)
-          .with('uses_move', 'Misty', 'Bulbasaur', 'Tackle')
+      it 'does actions in correct order' do
+        expect(action2).to receive(:execute)
+          .with(subject)
           .ordered
-        expect(battle).to receive(:add_to_log)
-          .with('uses_move', 'Ash', 'Pikachu', 'Thunder Shock')
+        expect(action1).to receive(:execute)
+          .with(subject)
           .ordered
         subject.execute
       end

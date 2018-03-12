@@ -13,6 +13,8 @@ module Oakdex
 
       def_delegators :@species, :types
 
+      attr_accessor :trainer
+
       def self.create(species_name, options = {})
         species = Oakdex::Pokedex::Pokemon.find!(species_name)
         Oakdex::Battle::PokemonFactory.create(species, options)
