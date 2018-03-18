@@ -45,6 +45,15 @@ module Oakdex
                            end
       end
 
+      def change_pp_by(move_name, pp_change)
+        move = moves.find { |m| m.name == move_name }
+        move.pp = if pp_change < 0
+                    [move.pp + pp_change, 0].max
+                  else
+                    [move.pp + pp_change, move.max_pp].min
+                  end
+      end
+
       def level
         PokemonStat.level_by_exp(@species.leveling_rate, @attributes[:exp])
       end

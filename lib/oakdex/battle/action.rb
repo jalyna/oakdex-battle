@@ -38,6 +38,7 @@ module Oakdex
 
       def execute(turn)
         @turn = turn
+        pokemon.change_pp_by(move.name, -1)
         if hitting?
           add_uses_move_log
           @damage = Damage.new(@turn, self)

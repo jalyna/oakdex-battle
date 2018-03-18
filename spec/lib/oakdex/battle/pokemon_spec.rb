@@ -24,7 +24,7 @@ describe Oakdex::Battle::Pokemon do
   end
   let(:move) do
     Oakdex::Battle::Move.new(
-      Oakdex::Pokedex::Move.find('Thunder Shock'), 30, 30
+      Oakdex::Pokedex::Move.find('Thunder Shock'), 30, 40
     )
   end
   let(:attributes) do
@@ -130,6 +130,29 @@ describe Oakdex::Battle::Pokemon do
     context 'more than max' do
       let(:change_by) { 200 }
       it { expect(subject.current_hp).to eq(17) }
+    end
+  end
+
+  describe '#change_pp_by' do
+    let(:change_by) { -1 }
+    let(:move_name) { 'Thunder Shock' }
+    before { subject.change_pp_by(move_name, change_by) }
+
+    it { expect(move.pp).to eq(29) }
+
+    context 'pp under 0' do
+      let(:change_by) { -40 }
+      it { expect(move.pp).to eq(0) }
+    end
+
+    context 'positive' do
+      let(:change_by) { 1 }
+      it { expect(move.pp).to eq(31) }
+    end
+
+    context 'more than max' do
+      let(:change_by) { 200 }
+      it { expect(move.pp).to eq(40) }
     end
   end
 

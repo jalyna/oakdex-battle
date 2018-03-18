@@ -6,7 +6,8 @@ module Oakdex
     class Move
       extend Forwardable
 
-      attr_reader :pp
+      attr_reader :max_pp
+      attr_accessor :pp
 
       def_delegators :@move_type, :target, :priority, :accuracy,
                      :category, :power, :type

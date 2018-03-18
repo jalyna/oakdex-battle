@@ -128,6 +128,11 @@ describe Oakdex::Battle::Action do
       subject.execute(turn)
     end
 
+    it 'reduces users pp' do
+      expect(pokemon).to receive(:change_pp_by).with('Thunder Shock', -1)
+      subject.execute(turn)
+    end
+
     context 'target faints' do
       let(:damage) { double(:damage, damage: 8) }
       it 'adds correct logs' do
