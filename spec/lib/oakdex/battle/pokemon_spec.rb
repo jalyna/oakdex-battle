@@ -111,6 +111,20 @@ describe Oakdex::Battle::Pokemon do
     it { expect(subject.critical_hit_prob).to eq(Rational(1, 16)) }
   end
 
+  describe '#moves_with_pp' do
+    it { expect(subject.moves_with_pp).to eq([move]) }
+
+    context 'no pp' do
+      let(:move) do
+        Oakdex::Battle::Move.new(
+          Oakdex::Pokedex::Move.find('Thunder Shock'), 0, 40
+        )
+      end
+
+      it { expect(subject.moves_with_pp).to eq([]) }
+    end
+  end
+
   describe '#change_hp_by' do
     let(:change_by) { -2 }
     before { subject.change_hp_by(change_by) }

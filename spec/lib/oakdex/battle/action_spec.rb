@@ -185,5 +185,61 @@ describe Oakdex::Battle::Action do
         expect(subject.damage).to be_nil
       end
     end
+
+    context 'recall' do
+      let(:pokemon3) do
+        Oakdex::Battle::Pokemon.create('Charmander',
+                                       level: 3,
+                                       hp: 6,
+                                       moves: [['Tackle', 30, 30]]
+                                      )
+      end
+      let(:attributes) do
+        {
+          action: 'recall',
+          pokemon: pokemon,
+          target: pokemon3
+        }
+      end
+      let(:trainer) { Oakdex::Battle::Trainer.new('Ash', [pokemon, pokemon3]) }
+
+      it 'adds correct logs' do
+        subject.execute(turn)
+        expect(log)
+          .to eq([
+                   %w[recalls Ash Pikachu Charmander]
+                 ])
+      end
+
+      it 'adds new pokemon to arena and removes other' do
+        expect(battle).to receive(:add_to_arena).with(trainer, pokemon3)
+        expect(battle).to receive(:remove_from_arena).with(trainer, pokemon)
+        subject.execute(turn)
+      end
+
+      context 'pokemon fainted' do
+        let(:attributes) do
+          {
+            action: 'recall',
+            pokemon: nil,
+            target: pokemon3
+          }
+        end
+
+        it 'adds correct logs' do
+          subject.execute(turn)
+          expect(log)
+            .to eq([
+                     %w[recalls_for_fainted Ash Charmander]
+                   ])
+        end
+
+        it 'adds new pokemon to arena' do
+          expect(battle).to receive(:add_to_arena).with(trainer, pokemon3)
+          expect(battle).not_to receive(:remove_from_arena)
+          subject.execute(turn)
+        end
+      end
+    end
   end
 end

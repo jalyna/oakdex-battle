@@ -100,5 +100,35 @@ describe Oakdex::Battle::Turn do
         subject.execute
       end
     end
+
+    context 'second pokemon' do
+      let(:pokemon3) do
+        Oakdex::Battle::Pokemon.create('Charmander',
+                                       level: 3,
+                                       moves: [['Tackle', 35, 35]]
+                                      )
+      end
+      let(:trainer2) do
+        Oakdex::Battle::Trainer.new('Misty',
+                                    [pokemon2, pokemon3])
+      end
+      let(:attributes2) do
+        {
+          action: 'recall',
+          pokemon: pokemon2,
+          target: pokemon3
+        }
+      end
+
+      it 'does actions in correct order' do
+        expect(action2).to receive(:execute)
+          .with(subject)
+          .ordered
+        expect(action1).to receive(:execute)
+          .with(subject)
+          .ordered
+        subject.execute
+      end
+    end
   end
 end

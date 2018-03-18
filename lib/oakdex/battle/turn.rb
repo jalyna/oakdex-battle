@@ -24,8 +24,8 @@ module Oakdex
       end
 
       def compare_actions(a, b)
-        a_prio = a.move.priority
-        b_prio = b.move.priority
+        a_prio = a.priority
+        b_prio = b.priority
         if a_prio == b_prio
           if a.pokemon.speed == b.pokemon.speed
             [1, -1].sample

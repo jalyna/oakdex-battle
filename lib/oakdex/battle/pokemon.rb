@@ -37,6 +37,10 @@ module Oakdex
         @attributes[:hp]
       end
 
+      def moves_with_pp
+        moves.select { |m| m.pp > 0 }
+      end
+
       def change_hp_by(hp_change)
         @attributes[:hp] = if hp_change < 0
                              [@attributes[:hp] + hp_change, 0].max

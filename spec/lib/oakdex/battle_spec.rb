@@ -65,8 +65,128 @@ describe Oakdex::Battle do
     end
   end
 
+  context 'trainer1 has a second pokemon' do
+    let(:pokemon3) do
+      Oakdex::Battle::Pokemon.create('Pidgey',
+                                     level: 3,
+                                     moves: [['Quick Attack', 30, 30]]
+                                    )
+    end
+    let(:trainer1) { Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon3]) }
+
+    context 'started' do
+      before { subject.continue }
+
+      describe '#arena' do
+        it 'adds current pokemon to arena' do
+          expect(subject.arena).to eq(
+            sides: [
+              [[trainer1, [pokemon1]]],
+              [[trainer2, [pokemon2]]]
+            ]
+          )
+        end
+      end
+
+      context 'first action added recall' do
+        before do
+          subject.add_action(trainer1,
+                             action: 'recall',
+                             pokemon: pokemon1,
+                             target: pokemon3
+                            )
+        end
+
+        describe '#valid_actions_for' do
+          it 'shows valid actions for trainer1' do
+            expect(subject.valid_actions_for(trainer1)).to eq([])
+          end
+        end
+      end
+
+      context 'first action added move' do
+        before do
+          subject.add_action(trainer1,
+                             action: 'move',
+                             pokemon: pokemon1,
+                             move: 'Thunder Shock',
+                             target: pokemon2
+                            )
+        end
+
+        describe '#valid_actions_for' do
+          it 'shows valid actions for trainer1' do
+            expect(subject.valid_actions_for(trainer1)).to eq([])
+          end
+        end
+      end
+
+      describe '#valid_actions_for' do
+        it 'shows valid actions for trainer1' do
+          expect(subject.valid_actions_for(trainer1))
+          .to eq([
+                   {
+                     action: 'move',
+                     pokemon: pokemon1,
+                     move: 'Thunder Shock',
+                     target: pokemon2
+                   },
+                   {
+                     action: 'recall',
+                     pokemon: pokemon1,
+                     target: pokemon3
+                   }
+                 ])
+        end
+
+        context 'pokemon1 fainted' do
+          before do
+            allow(pokemon1).to receive(:current_hp).and_return(0)
+          end
+
+          it 'removes pokemon2' do
+            subject.remove_fainted
+            expect(subject.valid_actions_for(trainer1))
+            .to eq([
+                     {
+                       action: 'recall',
+                       pokemon: nil,
+                       target: pokemon3
+                     }
+                   ])
+          end
+        end
+      end
+    end
+  end
+
   context 'started' do
     before { subject.continue }
+
+    describe '#remove_from_arena' do
+      it 'removes pokemon' do
+        subject.remove_from_arena(trainer1, pokemon1)
+        expect(subject.arena).to eq(
+          sides: [
+            [[trainer1, []]],
+            [[trainer2, [pokemon2]]]
+          ]
+        )
+      end
+    end
+
+    describe '#add_to_arena' do
+      let(:pokemon3) { double(:pokemon) }
+      it 'adds pokemon' do
+        subject.add_to_arena(trainer1, pokemon3)
+        expect(subject.arena).to eq(
+          sides: [
+            [[trainer1, [pokemon1, pokemon3]]],
+            [[trainer2, [pokemon2]]]
+          ]
+        )
+      end
+    end
 
     describe '#remove_fainted' do
       it 'removes none' do

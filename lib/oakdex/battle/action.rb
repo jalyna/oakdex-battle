@@ -15,12 +15,20 @@ module Oakdex
         @attributes = attributes
       end
 
+      def priority
+        move ? move.priority : 6
+      end
+
       def pokemon
         @attributes[:pokemon]
       end
 
       def target
         @attributes[:target]
+      end
+
+      def type
+        @attributes[:action]
       end
 
       def move
@@ -38,6 +46,7 @@ module Oakdex
 
       def execute(turn)
         @turn = turn
+        return execute_recall if type == 'recall'
         pokemon.change_pp_by(move.name, -1)
         if hitting?
           add_uses_move_log
@@ -50,6 +59,16 @@ module Oakdex
       end
 
       private
+
+      def execute_recall
+        add_recalls_log
+        if pokemon
+          battle.remove_from_arena(trainer, pokemon)
+          battle.add_to_arena(trainer, target)
+        else
+          battle.add_to_arena(trainer, target)
+        end
+      end
 
       def execute_damage
         @damage = Damage.new(@turn, self)
@@ -64,6 +83,14 @@ module Oakdex
 
       def add_log(*args)
         battle.add_to_log(*args)
+      end
+
+      def add_recalls_log
+        if pokemon
+          add_log 'recalls', trainer.name, pokemon.name, target.name
+        else
+          add_log 'recalls_for_fainted', trainer.name, target.name
+        end
       end
 
       def add_uses_move_log
