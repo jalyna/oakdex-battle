@@ -8,7 +8,7 @@ module Oakdex
 
       def_delegators :@turn, :battle
 
-      attr_reader :trainer
+      attr_reader :trainer, :damage
 
       def initialize(trainer, attributes)
         @trainer = trainer
@@ -41,7 +41,13 @@ module Oakdex
         if hitting?
           add_uses_move_log
           @damage = Damage.new(@turn, self)
-          add_received_damage_log if @damage.damage > 0
+          if @damage.damage > 0
+            add_received_damage_log
+            target.change_hp_by(-@damage.damage)
+            add_target_fainted_log if target.current_hp.zero?
+          else
+            add_received_no_damage_log
+          end
         else
           add_move_does_not_hit_log
         end
@@ -61,8 +67,18 @@ module Oakdex
         add_log 'move_does_not_hit', trainer.name, pokemon.name, move.name
       end
 
+      def add_target_fainted_log
+        add_log 'target_fainted', target.trainer.name, target.name
+      end
+
       def add_received_damage_log
-        add_log 'received_damage', target.trainer.name, target.name, move.name
+        add_log 'received_damage', target.trainer.name, target.name,
+                move.name, @damage.damage
+      end
+
+      def add_received_no_damage_log
+        add_log 'received_no_damage', target.trainer.name, target.name,
+                move.name
       end
     end
   end

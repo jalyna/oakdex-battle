@@ -33,7 +33,7 @@ describe Oakdex::Battle::Pokemon do
       gender: 'female',
       ability: Oakdex::Pokedex::Ability.find('Static'),
       nature: Oakdex::Pokedex::Nature.find('Bashful'),
-      hp: 20,
+      hp: 12,
       iv: iv,
       ev: ev,
       moves: [move]
@@ -68,7 +68,7 @@ describe Oakdex::Battle::Pokemon do
   end
 
   describe '#current_hp' do
-    it { expect(subject.current_hp).to eq(20) }
+    it { expect(subject.current_hp).to eq(12) }
   end
 
   describe '#level' do
@@ -109,6 +109,28 @@ describe Oakdex::Battle::Pokemon do
 
   describe '#critical_hit_prob' do
     it { expect(subject.critical_hit_prob).to eq(Rational(1, 16)) }
+  end
+
+  describe '#change_hp_by' do
+    let(:change_by) { -2 }
+    before { subject.change_hp_by(change_by) }
+
+    it { expect(subject.current_hp).to eq(10) }
+
+    context 'hp under 0' do
+      let(:change_by) { -30 }
+      it { expect(subject.current_hp).to eq(0) }
+    end
+
+    context 'positive' do
+      let(:change_by) { 2 }
+      it { expect(subject.current_hp).to eq(14) }
+    end
+
+    context 'more than max' do
+      let(:change_by) { 200 }
+      it { expect(subject.current_hp).to eq(17) }
+    end
   end
 
   %i[types].each do |field|

@@ -60,6 +60,18 @@ describe Oakdex::Battle::Turn do
       subject.execute
     end
 
+    context 'pokemon fainted' do
+      before do
+        allow(pokemon1).to receive(:current_hp).and_return(0)
+      end
+
+      it 'does actions in correct order' do
+        expect(action1).not_to receive(:execute)
+        expect(action2).not_to receive(:execute)
+        subject.execute
+      end
+    end
+
     context 'move 2 has higher prio' do
       let(:move2_prio) { 2 }
 

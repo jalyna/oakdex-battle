@@ -37,6 +37,14 @@ module Oakdex
         @attributes[:hp]
       end
 
+      def change_hp_by(hp_change)
+        @attributes[:hp] = if hp_change < 0
+                             [@attributes[:hp] + hp_change, 0].max
+                           else
+                             [@attributes[:hp] + hp_change, hp].min
+                           end
+      end
+
       def level
         PokemonStat.level_by_exp(@species.leveling_rate, @attributes[:exp])
       end
