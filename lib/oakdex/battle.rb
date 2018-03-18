@@ -115,6 +115,9 @@ module Oakdex
     end
 
     def valid_moves_for(trainer, pokemon)
+      if pokemon.moves.all? { |m| m.pp.zero? }
+        return struggle_move(trainer, pokemon)
+      end
       pokemon.moves.map do |move|
         next if move.pp.zero?
         available_targets_for_move(trainer, pokemon, move).map do |target|
@@ -126,6 +129,27 @@ module Oakdex
           }
         end
       end.compact.flatten(1)
+    end
+
+    def struggle_move(trainer, pokemon)
+      move = struggle_move_instance
+      available_targets_for_move(trainer, pokemon, move).map do |target|
+        {
+          action: 'move',
+          pokemon: pokemon,
+          move: move.name,
+          target: target
+        }
+      end
+    end
+
+    def struggle_move_instance
+      @struggle_move ||= begin
+        move_type = Oakdex::Pokedex::Move.find('Struggle')
+        Oakdex::Battle::Move.new(move_type, move_type.pp, move_type.pp)
+      end
+      @struggle_move.pp = 1
+      @struggle_move
     end
 
     def available_targets_for_move(trainer, _pokemon, _move)

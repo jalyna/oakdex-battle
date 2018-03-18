@@ -47,6 +47,7 @@ module Oakdex
 
       def change_pp_by(move_name, pp_change)
         move = moves.find { |m| m.name == move_name }
+        return unless move
         move.pp = if pp_change < 0
                     [move.pp + pp_change, 0].max
                   else

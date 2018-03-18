@@ -41,20 +41,24 @@ module Oakdex
         pokemon.change_pp_by(move.name, -1)
         if hitting?
           add_uses_move_log
-          @damage = Damage.new(@turn, self)
-          if @damage.damage > 0
-            add_received_damage_log
-            target.change_hp_by(-@damage.damage)
-            add_target_fainted_log if target.current_hp.zero?
-          else
-            add_received_no_damage_log
-          end
+          execute_damage
         else
           add_move_does_not_hit_log
         end
       end
 
       private
+
+      def execute_damage
+        @damage = Damage.new(@turn, self)
+        if @damage.damage > 0
+          add_received_damage_log
+          target.change_hp_by(-@damage.damage)
+          add_target_fainted_log if target.current_hp.zero?
+        else
+          add_received_no_damage_log
+        end
+      end
 
       def add_log(*args)
         battle.add_to_log(*args)

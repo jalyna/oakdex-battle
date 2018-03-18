@@ -154,6 +154,11 @@ describe Oakdex::Battle::Pokemon do
       let(:change_by) { 200 }
       it { expect(move.pp).to eq(40) }
     end
+
+    context 'unknown move' do
+      let(:move_name) { 'Struggle' }
+      it { expect(move.pp).to eq(30) }
+    end
   end
 
   %i[types].each do |field|

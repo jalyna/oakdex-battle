@@ -1,10 +1,11 @@
 require 'spec_helper'
 
 describe Oakdex::Battle do
+  let(:move_1_pp) { 30 }
   let(:pokemon1) do
     Oakdex::Battle::Pokemon.create('Pikachu',
                                    level: 3,
-                                   moves: [['Thunder Shock', 30, 30]]
+                                   moves: [['Thunder Shock', move_1_pp, 30]]
                                   )
   end
   let(:pokemon2) do
@@ -98,6 +99,21 @@ describe Oakdex::Battle do
                    target: pokemon2
                  }
                ])
+      end
+
+      context 'no pp left' do
+        let(:move_1_pp) { 0 }
+        it 'shows valid actions for trainer1' do
+          expect(subject.valid_actions_for(trainer1))
+          .to eq([
+                   {
+                     action: 'move',
+                     pokemon: pokemon1,
+                     move: 'Struggle',
+                     target: pokemon2
+                   }
+                 ])
+        end
       end
 
       it 'shows valid actions for trainer2' do
