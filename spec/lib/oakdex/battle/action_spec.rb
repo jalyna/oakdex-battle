@@ -133,6 +133,11 @@ describe Oakdex::Battle::Action do
       subject.execute(turn)
     end
 
+    it 'calls remove_fainted' do
+      expect(battle).to receive(:remove_fainted)
+      subject.execute(turn)
+    end
+
     context 'target faints' do
       let(:damage) { double(:damage, damage: 8) }
       it 'adds correct logs' do

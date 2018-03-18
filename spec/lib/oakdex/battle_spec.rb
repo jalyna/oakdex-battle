@@ -68,6 +68,34 @@ describe Oakdex::Battle do
   context 'started' do
     before { subject.continue }
 
+    describe '#remove_fainted' do
+      it 'removes none' do
+        subject.remove_fainted
+        expect(subject.arena).to eq(
+          sides: [
+            [[trainer1, [pokemon1]]],
+            [[trainer2, [pokemon2]]]
+          ]
+        )
+      end
+
+      context 'pokemon2 fainted' do
+        before do
+          allow(pokemon2).to receive(:current_hp).and_return(0)
+        end
+
+        it 'removes pokemon2' do
+          subject.remove_fainted
+          expect(subject.arena).to eq(
+            sides: [
+              [[trainer1, [pokemon1]]],
+              [[trainer2, []]]
+            ]
+          )
+        end
+      end
+    end
+
     describe '#arena' do
       it 'adds current pokemon to arena' do
         expect(subject.arena).to eq(

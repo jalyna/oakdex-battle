@@ -72,6 +72,17 @@ module Oakdex
       @current_log << args.to_a
     end
 
+    def remove_fainted
+      @sides = @sides.map do |side|
+        side.map do |trainer_data|
+          [
+            trainer_data[0],
+            trainer_data[1].select { |p| !p.current_hp.zero? }
+          ]
+        end
+      end
+    end
+
     private
 
     def teams_with_no_pokemon_left

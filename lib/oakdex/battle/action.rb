@@ -45,6 +45,8 @@ module Oakdex
         else
           add_move_does_not_hit_log
         end
+
+        battle.remove_fainted
       end
 
       private
