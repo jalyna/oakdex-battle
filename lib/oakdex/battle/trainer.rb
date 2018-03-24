@@ -32,7 +32,8 @@ module Oakdex
       end
 
       def left_pokemon_in_team
-        @team.select { |p| !p.current_hp.zero? }
+        @team.select { |p| !p.current_hp.zero? } -
+          @in_battle_pokemon.map(&:pokemon)
       end
     end
   end

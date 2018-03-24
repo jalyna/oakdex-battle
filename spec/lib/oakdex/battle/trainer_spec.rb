@@ -124,5 +124,17 @@ describe Oakdex::Battle::Trainer do
       let(:current_hp1) { 0 }
       it { expect(subject.left_pokemon_in_team).to eq([pokemon2]) }
     end
+
+    context 'has in battle pokemon' do
+      before do
+        allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
+          .with(pokemon1, side).and_return(in_battle_pokemon)
+        allow(side).to receive(:add_to_log)
+          .with('sends_to_battle', name, pokemon1.name)
+        subject.send_to_battle(pokemon1, side)
+      end
+
+      it { expect(subject.left_pokemon_in_team).to eq([pokemon2]) }
+    end
   end
 end
