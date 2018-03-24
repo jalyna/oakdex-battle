@@ -187,6 +187,15 @@ describe Oakdex::Battle::Action do
     end
 
     context 'recall' do
+      let(:side1) { double(:side) }
+      let(:side2) { double(:side) }
+      let(:sides) { [side1, side2] }
+      before do
+        allow(battle).to receive(:sides).and_return(sides)
+        allow(side1).to receive(:trainer_on_side?)
+          .with(trainer).and_return(true)
+        allow(side1).to receive(:add_to_log)
+      end
       let(:pokemon3) do
         Oakdex::Battle::Pokemon.create('Charmander',
                                        level: 3,
@@ -212,8 +221,8 @@ describe Oakdex::Battle::Action do
       end
 
       it 'adds new pokemon to arena and removes other' do
-        expect(battle).to receive(:add_to_arena).with(trainer, pokemon3)
-        expect(battle).to receive(:remove_from_arena).with(trainer, pokemon)
+        expect(trainer).to receive(:send_to_battle).with(pokemon3, side1)
+        expect(trainer).to receive(:remove_from_battle).with(pokemon, side1)
         subject.execute(turn)
       end
 
@@ -235,8 +244,8 @@ describe Oakdex::Battle::Action do
         end
 
         it 'adds new pokemon to arena' do
-          expect(battle).to receive(:add_to_arena).with(trainer, pokemon3)
-          expect(battle).not_to receive(:remove_from_arena)
+          expect(trainer).to receive(:send_to_battle).with(pokemon3, side1)
+          expect(trainer).not_to receive(:remove_from_battle)
           subject.execute(turn)
         end
       end

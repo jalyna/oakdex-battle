@@ -32,6 +32,7 @@ module Oakdex
       end
 
       def move
+        return nil unless type == 'move'
         pokemon.moves.find { |m| m.name == @attributes[:move] }
       end
 
@@ -60,13 +61,17 @@ module Oakdex
 
       private
 
+      def side
+        battle.sides.find { |s| s.trainer_on_side?(trainer) }
+      end
+
       def execute_recall
         add_recalls_log
         if pokemon
-          battle.remove_from_arena(trainer, pokemon)
-          battle.add_to_arena(trainer, target)
+          trainer.remove_from_battle(pokemon, side)
+          trainer.send_to_battle(target, side)
         else
-          battle.add_to_arena(trainer, target)
+          trainer.send_to_battle(target, side)
         end
       end
 

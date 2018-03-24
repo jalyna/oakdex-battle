@@ -1,113 +1,72 @@
 require 'spec_helper'
 
 describe Oakdex::Battle::ValidActionService do
-  let(:move1) { double(:move, name: 'My Move') }
-  let(:moves_with_pp) { [move1] }
-  let(:hp) { 12 }
-  let(:pokemon1) do
-    double(:pokemon,
-           moves_with_pp: moves_with_pp,
-           current_hp: hp)
-  end
+  let(:pokemon1) { double(:pokemon) }
   let(:pokemon2) { double(:pokemon) }
-  let(:team) { [pokemon1] }
-  let(:trainer1) { double(:trainer, team: team) }
-  let(:trainer2) { double(:trainer) }
+  let(:valid_move) { double(:valid_move) }
+  let(:action_added) { false }
   let(:actions) { [] }
-  let(:arena) do
-    {
-      sides: [
-        [[trainer1, [pokemon1]]],
-        [[trainer2, [pokemon2]]]
-      ]
-    }
+  let(:in_battle_pokemon1) do
+    double(:in_battle_pokemon,
+           valid_move_actions: [valid_move],
+           pokemon: pokemon1,
+           action_added?: action_added)
   end
-  let(:battle) do
-    double(:battle,
-           arena: arena,
-           actions: actions,
-           team1: [trainer1]
-          )
+  let(:left_pokemon_in_team) { [] }
+  let(:in_battle_pokemon_list) { [in_battle_pokemon1] }
+  let(:trainer1) do
+    double(:trainer,
+           in_battle_pokemon: in_battle_pokemon_list,
+           left_pokemon_in_team: left_pokemon_in_team)
   end
+  let(:side1) { double(:side, trainers: [trainer1]) }
+  let(:side2) { double(:side) }
+  let(:battle) { double(:battle, sides: [side1, side2], actions: actions) }
   subject { described_class.new(battle) }
 
   describe '#valid_actions_for' do
-    it 'contains only move action' do
-      expect(subject.valid_actions_for(trainer1))
-      .to eq([{
-               action: 'move',
-               pokemon: pokemon1,
-               move: 'My Move',
-               target: pokemon2
-             }])
+    it 'shows move action' do
+      expect(subject.valid_actions_for(trainer1)).to eq([valid_move])
     end
 
-    context 'no moves available' do
-      let(:moves_with_pp) { [] }
-
-      it 'contains only struggle move action' do
-        expect(subject.valid_actions_for(trainer1))
-        .to eq([{
-                 action: 'move',
-                 pokemon: pokemon1,
-                 move: 'Struggle',
-                 target: pokemon2
-               }])
-      end
-    end
-
-    context 'second pokemon' do
-      let(:pokemon3) { double(:pokemon, current_hp: 12) }
-      let(:team) { [pokemon1, pokemon3] }
-
-      it 'contains recall too' do
-        expect(subject.valid_actions_for(trainer1))
-        .to eq([{
-                 action: 'move',
-                 pokemon: pokemon1,
-                 move: 'My Move',
-                 target: pokemon2
-               },
-                {
-                  action: 'recall',
-                  pokemon: pokemon1,
-                  target: pokemon3
-                }])
+    context 'more than one pokemon' do
+      let(:left_pokemon_in_team) { [pokemon2] }
+      let(:recall_action) do
+        {
+          action: 'recall',
+          pokemon: pokemon1,
+          target: pokemon2
+        }
       end
 
-      context 'pokemon in arena fainted' do
-        let(:hp) { 0 }
-        let(:arena) do
+      it 'shows move and recall action' do
+        expect(subject.valid_actions_for(trainer1))
+          .to eq([valid_move, recall_action])
+      end
+
+      context 'action added' do
+        let(:action_added) { true }
+        it { expect(subject.valid_actions_for(trainer1)).to eq([valid_move]) }
+      end
+
+      context 'recall action added' do
+        let(:action1) { double(:action, type: 'recall', target: pokemon2) }
+        let(:actions) { [action1] }
+        it { expect(subject.valid_actions_for(trainer1)).to eq([valid_move]) }
+      end
+
+      context 'in battle pokemon fainted' do
+        let(:in_battle_pokemon_list) { [] }
+        let(:recall_action2) do
           {
-            sides: [
-              [[trainer1, []]],
-              [[trainer2, [pokemon2]]]
-            ]
+            action: 'recall',
+            pokemon: nil,
+            target: pokemon2
           }
         end
 
-        it 'contains recall only' do
-          expect(subject.valid_actions_for(trainer1))
-          .to eq([
-                   {
-                     action: 'recall',
-                     pokemon: nil,
-                     target: pokemon3
-                   }])
-        end
-      end
-
-      context 'but without hp' do
-        let(:pokemon3) { double(:pokemon, current_hp: 0) }
-
-        it 'does not contain recall' do
-          expect(subject.valid_actions_for(trainer1))
-          .to eq([{
-                   action: 'move',
-                   pokemon: pokemon1,
-                   move: 'My Move',
-                   target: pokemon2
-                 }])
+        it 'recall action' do
+          expect(subject.valid_actions_for(trainer1)).to eq([recall_action2])
         end
       end
     end

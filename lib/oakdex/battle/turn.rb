@@ -12,7 +12,7 @@ module Oakdex
       def execute
         ordered_actions.each do |action|
           next if action.target.current_hp.zero?
-          next if action.pokemon.current_hp.zero?
+          next if action.pokemon && action.pokemon.current_hp.zero?
           action.execute(self)
         end
       end
@@ -26,7 +26,7 @@ module Oakdex
       def compare_actions(a, b)
         a_prio = a.priority
         b_prio = b.priority
-        if a_prio == b_prio
+        if a_prio == b_prio && a_prio < 6
           if a.pokemon.speed == b.pokemon.speed
             [1, -1].sample
           else

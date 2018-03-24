@@ -1,0 +1,78 @@
+require 'spec_helper'
+
+describe Oakdex::Battle::Side do
+  let(:battle) { double(:battle) }
+  let(:pokemon1) { double(:pokemon) }
+  let(:pokemon2) { double(:pokemon) }
+  let(:pokemon3) { double(:pokemon) }
+  let(:team1) { [pokemon1, pokemon3] }
+  let(:team2) { [pokemon2] }
+  let(:trainer1) { double(:trainer, team: team1) }
+  let(:trainer2) { double(:trainer, team: team2) }
+  let(:trainers) { [trainer1, trainer2] }
+  subject { described_class.new(battle, trainers) }
+
+  describe '#send_to_battle' do
+    it 'sends first pokemon to battle' do
+      expect(trainer1).to receive(:send_to_battle)
+        .with(pokemon1, subject)
+      expect(trainer2).to receive(:send_to_battle)
+        .with(pokemon2, subject)
+      subject.send_to_battle
+    end
+  end
+
+  describe '#remove_fainted' do
+    it 'removes fainted of each trainer' do
+      expect(trainer1).to receive(:remove_fainted)
+      expect(trainer2).to receive(:remove_fainted)
+      subject.remove_fainted
+    end
+  end
+
+  describe '#trainer_on_side?' do
+    let(:trainer3) { double(:trainer) }
+    it { expect(subject).to be_trainer_on_side(trainer1) }
+    it { expect(subject).to be_trainer_on_side(trainer2) }
+    it { expect(subject).not_to be_trainer_on_side(trainer3) }
+  end
+
+  describe '#in_battle_pokemon' do
+    let(:in_battle_pokemon1) { double(:in_battle_pokemon) }
+    let(:in_battle_pokemon2) { double(:in_battle_pokemon) }
+
+    before do
+      allow(trainer1).to receive(:in_battle_pokemon)
+        .and_return([in_battle_pokemon1])
+      allow(trainer2).to receive(:in_battle_pokemon)
+        .and_return([in_battle_pokemon2])
+    end
+
+    it 'returns battle pokemon' do
+      expect(subject.in_battle_pokemon)
+        .to eq([in_battle_pokemon1, in_battle_pokemon2])
+    end
+  end
+
+  describe '#fainted?' do
+    let(:fainted1) { false }
+    let(:fainted2) { false }
+
+    before do
+      allow(trainer1).to receive(:fainted?).and_return(fainted1)
+      allow(trainer2).to receive(:fainted?).and_return(fainted2)
+    end
+
+    it { expect(subject).not_to be_fainted }
+
+    context 'trainer1 fainted' do
+      let(:fainted1) { true }
+      it { expect(subject).not_to be_fainted }
+
+      context 'trainer2 fainted' do
+        let(:fainted2) { true }
+        it { expect(subject).to be_fainted }
+      end
+    end
+  end
+end

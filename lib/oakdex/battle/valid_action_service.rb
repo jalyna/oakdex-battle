@@ -6,111 +6,50 @@ module Oakdex
     class ValidActionService
       extend Forwardable
 
-      def_delegators :@battle, :actions
+      def_delegators :@battle, :actions, :sides
 
       def initialize(battle)
         @battle = battle
       end
 
       def valid_actions_for(trainer)
-        valid_moves_for(trainer) + valid_recall_actions_for(trainer)
+        return [] if sides.empty?
+        valid_move_actions_for(trainer) + valid_recall_actions_for(trainer)
       end
 
       private
 
-      def valid_moves_for(trainer)
-        pokemon_in_battle(trainer).flat_map do |pokemon|
-          valid_moves_for_pokemon(trainer, pokemon)
-        end
-      end
-
-      def valid_moves_for_pokemon(trainer, pokemon)
-        return [] unless actions_for(trainer, pokemon).empty?
-        moves = pokemon.moves_with_pp
-        moves = [struggle_move] if moves.empty?
-        moves.map do |move|
-          available_targets_for_move(trainer, pokemon, move).map do |target|
-            move_action(move, pokemon, target)
-          end
-        end.compact.flatten(1)
-      end
-
-      def struggle_move
-        @struggle_move ||= begin
-          move_type = Oakdex::Pokedex::Move.find('Struggle')
-          Oakdex::Battle::Move.new(move_type, move_type.pp, move_type.pp)
-        end
-      end
-
-      def available_targets_for_move(trainer, _pokemon, _move)
-        other_sides(trainer).map do |side|
-          side.map { |trainer_data| trainer_data[1] }
-        end.flatten(2)
+      def valid_move_actions_for(trainer)
+        trainer.in_battle_pokemon.flat_map(&:valid_move_actions)
       end
 
       def valid_recall_actions_for(trainer)
-        return [] if sides.empty?
-        left_pokemon_in_team_for(trainer).flat_map do |pokemon|
+        trainer.left_pokemon_in_team.flat_map do |pokemon|
           pokemon_per_trainer.times.map do |position|
-            recall_action(trainer, pokemon_in_battle(trainer)[position],
+            recall_action(trainer.in_battle_pokemon[position],
                           pokemon)
           end.compact
         end
       end
 
-      def move_action(move, pokemon, target)
-        {
-          action: 'move',
-          pokemon: pokemon,
-          move: move.name,
-          target: target
-        }
-      end
-
-      def recall_action(trainer, pokemon, target)
-        return if pokemon && !actions_for(trainer, pokemon).empty?
+      def recall_action(in_battle_pokemon, target)
+        return if in_battle_pokemon && in_battle_pokemon.action_added?
+        return if recall_action_for?(target)
         {
           action: 'recall',
-          pokemon: pokemon,
+          pokemon: in_battle_pokemon&.pokemon,
           target: target
         }
-      end
-
-      def left_pokemon_in_team_for(trainer)
-        (trainer.team - pokemon_in_battle(trainer)).select do |p|
-          !p.current_hp.zero?
-        end
-      end
-
-      def pokemon_in_battle(trainer)
-        sides.each do |side|
-          side.each do |trainer_data|
-            return trainer_data[1] if trainer_data.first == trainer
-          end
-        end
-        []
-      end
-
-      def other_sides(trainer)
-        sides.select do |side|
-          !side.any? { |trainer_data| trainer_data.first == trainer }
-        end
       end
 
       def pokemon_per_trainer
-        @battle.team1.size
+        sides.first.trainers.size
       end
 
-      def sides
-        @battle.arena[:sides]
-      end
-
-      def actions_of(trainer)
-        actions.select { |a| a.trainer == trainer }
-      end
-
-      def actions_for(trainer, pokemon)
-        actions_of(trainer).select { |a| a.pokemon == pokemon }
+      def recall_action_for?(target)
+        actions.any? do |action|
+          action.type == 'recall' && action.target == target
+        end
       end
     end
   end

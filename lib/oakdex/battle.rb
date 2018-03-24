@@ -6,11 +6,13 @@ require 'oakdex/battle/action'
 require 'oakdex/battle/damage'
 require 'oakdex/battle/turn'
 require 'oakdex/battle/valid_action_service'
+require 'oakdex/battle/side'
+require 'oakdex/battle/in_battle_pokemon'
 
 module Oakdex
-  # Namespace that handles Battles
+  # Represents battle, with has n turns and m sides
   class Battle
-    attr_reader :log, :actions, :team1, :team2
+    attr_reader :log, :actions, :team1, :team2, :sides
 
     def initialize(team1, team2, options = {})
       @team1 = team1.is_a?(Array) ? team1 : [team1]
@@ -39,24 +41,23 @@ module Oakdex
     def simulate_action(trainer)
       valid_actions = valid_actions_for(trainer)
       return false if valid_actions.empty?
-      add_action(trainer, valid_actions_for(trainer).sample)
-      true
+      add_action(trainer, valid_actions.sample)
     end
 
     def continue
       return start if @sides.empty?
-      return false if trainers.any? { |t| !valid_actions_for(t).empty? }
+      return false unless trainers.all? { |t| valid_actions_for(t).empty? }
       execute_actions
       true
     end
 
     def finished?
-      !winner.nil?
+      !fainted_sides.empty?
     end
 
     def winner
-      return if teams_with_no_pokemon_left.empty?
-      ([@team1, @team2] - teams_with_no_pokemon_left).flatten(1)
+      return if fainted_sides.empty?
+      (@sides - fainted_sides).flat_map(&:trainers)
     end
 
     def add_to_log(*args)
@@ -64,40 +65,7 @@ module Oakdex
     end
 
     def remove_fainted
-      @sides = @sides.map do |side|
-        side.map do |trainer_data|
-          [
-            trainer_data[0],
-            trainer_data[1].select { |p| !p.current_hp.zero? }
-          ]
-        end
-      end
-    end
-
-    def remove_from_arena(_trainer, pokemon)
-      @sides = @sides.map do |side|
-        side.map do |trainer_data|
-          [
-            trainer_data[0],
-            trainer_data[1].select { |p| p != pokemon }
-          ]
-        end
-      end
-    end
-
-    def add_to_arena(trainer, pokemon)
-      @sides = @sides.map do |side|
-        side.map do |trainer_data|
-          if trainer_data[0] == trainer
-            [
-              trainer_data[0],
-              trainer_data[1] + [pokemon]
-            ]
-          else
-            trainer_data
-          end
-        end
-      end
+      @sides.each(&:remove_fainted)
     end
 
     private
@@ -106,22 +74,13 @@ module Oakdex
       @valid_action_service ||= ValidActionService.new(self)
     end
 
-    def teams_with_no_pokemon_left
-      [@team1, @team2].select do |team|
-        team.all? do |trainer|
-          trainer.team.all? do |pokemon|
-            pokemon.current_hp <= 0
-          end
-        end
-      end
+    def fainted_sides
+      @sides.select(&:fainted?)
     end
 
     def start
       @sides = [@team1, @team2].map do |team|
-        team.map do |trainer|
-          add_to_log 'sends_to_battle', trainer.name, trainer.team.first.name
-          [trainer, [trainer.team.first]]
-        end
+        Side.new(self, team).tap(&:send_to_battle)
       end
       finish_turn
       true
@@ -134,7 +93,7 @@ module Oakdex
     end
 
     def trainers
-      @team1 + @team2
+      @sides.flat_map(&:trainers)
     end
 
     def finish_turn
