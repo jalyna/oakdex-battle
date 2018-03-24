@@ -77,13 +77,15 @@ battle.winner # => trainer1
 ```ruby
 pok3 = Oakdex::Battle::Pokemon.create('Altaria', level: 20)
 pok4 = Oakdex::Battle::Pokemon.create('Elekid', level: 14)
-trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1, pok3])
-trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2, pok4])
+trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1, pok3, pok9])
+trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2, pok4, pok10])
 trainer3 = Oakdex::Battle::Trainer.new('Brock', [pok5, pok6])
 trainer4 = Oakdex::Battle::Trainer.new('Erika', [pok7, pok8])
 
 # 2 vs. 2
 battle = Oakdex::Battle.new([trainer1], [trainer2], pokemon_per_side: 2)
+# 3 vs. 3
+battle = Oakdex::Battle.new([trainer1], [trainer2], pokemon_per_side: 3)
 # 2 vs. 2 (1 pokemon each trainer)
 battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4])
 ```
