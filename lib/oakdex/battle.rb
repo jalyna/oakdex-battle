@@ -27,7 +27,7 @@ module Oakdex
     end
 
     def pokemon_per_side
-      @options[:pokemon_per_side] || 1
+      @options[:pokemon_per_side] || @team1.size
     end
 
     def arena

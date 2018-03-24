@@ -27,20 +27,30 @@ module Oakdex
       def valid_recall_actions_for(trainer)
         trainer.left_pokemon_in_team.flat_map do |pokemon|
           pokemon_per_trainer.times.map do |position|
-            recall_action(trainer.in_battle_pokemon[position],
+            recall_action(trainer,
+                          trainer.in_battle_pokemon[position],
                           pokemon)
           end.compact
         end
       end
 
-      def recall_action(in_battle_pokemon, target)
-        return if in_battle_pokemon && in_battle_pokemon.action_added?
-        return if recall_action_for?(target)
+      def recall_action(trainer, in_battle_pokemon, target)
+        return if !recall_action_valid?(trainer, in_battle_pokemon, target) ||
+                  recall_action_for?(target)
         {
           action: 'recall',
-          pokemon: in_battle_pokemon&.position || 0,
+          pokemon: in_battle_pokemon&.position || side(trainer).next_position,
           target: target
         }
+      end
+
+      def recall_action_valid?(trainer, in_battle_pokemon, _target)
+        if in_battle_pokemon
+          !in_battle_pokemon.action_added?
+        else
+          next_position = side(trainer).next_position
+          next_position && !recall_action_for_position?(next_position)
+        end
       end
 
       def pokemon_per_trainer
@@ -53,12 +63,22 @@ module Oakdex
         end
       end
 
+      def recall_action_for_position?(position)
+        actions.any? do |action|
+          action.type == 'recall' && action.pokemon_position == position
+        end
+      end
+
       def no_battle_pokemon?(trainer)
         other_sides(trainer).all? { |s| s.in_battle_pokemon.empty? }
       end
 
       def other_sides(trainer)
         sides.select { |s| !s.trainer_on_side?(trainer) }
+      end
+
+      def side(trainer)
+        sides.find { |s| s.trainer_on_side?(trainer) }
       end
     end
   end

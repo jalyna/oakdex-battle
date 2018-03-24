@@ -94,4 +94,38 @@ describe 'Battle simulation' do
       end
     end
   end
+
+  context '2 vs. 2 with two trainers on each side' do
+    let(:trainer3) do
+      Oakdex::Battle::Trainer.new('Brock', [pokemon5, pokemon6])
+    end
+    let(:trainer4) do
+      Oakdex::Battle::Trainer.new('Erika', [pokemon7, pokemon8])
+    end
+    let(:team1) { [trainer1, trainer3] }
+    let(:team2) { [trainer2, trainer4] }
+
+    5.times do |i|
+      it "executes battle simulation #{i}" do
+        battle.continue
+
+        until battle.finished?
+          battle.simulate_action(trainer1)
+          battle.simulate_action(trainer2)
+          battle.simulate_action(trainer3)
+          battle.simulate_action(trainer4)
+          battle.continue
+        end
+
+        battle.log.each do |log|
+          puts log.inspect
+        end
+
+        puts "WINNER: #{battle.winner.map(&:name)}" if battle.winner
+
+        expect(battle.log).not_to be_empty
+        expect(battle).to be_finished
+      end
+    end
+  end
 end

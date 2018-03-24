@@ -21,7 +21,7 @@ module Oakdex
 
       def send_to_battle
         @trainers.map do |trainer|
-          battle.pokemon_per_side.times do |i|
+          pokemon_per_trainer.times do |i|
             break unless trainer.team[i]
             trainer.send_to_battle(trainer.team[i], self)
           end
@@ -45,6 +45,10 @@ module Oakdex
       end
 
       private
+
+      def pokemon_per_trainer
+        (battle.pokemon_per_side / trainers.size)
+      end
 
       def left_position
         all_position - taken_positions

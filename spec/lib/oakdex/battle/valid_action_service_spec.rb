@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe Oakdex::Battle::ValidActionService do
+  let(:next_position1) { 0 }
   let(:pokemon1) { double(:pokemon) }
   let(:pokemon2) { double(:pokemon) }
   let(:valid_move) { double(:valid_move) }
@@ -26,6 +27,7 @@ describe Oakdex::Battle::ValidActionService do
   end
   let(:side1) do
     double(:side,
+           next_position: next_position1,
            trainers: [trainer1],
            in_battle_pokemon: in_battle_pokemon_list)
   end

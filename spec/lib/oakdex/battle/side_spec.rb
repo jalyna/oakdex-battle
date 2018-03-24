@@ -38,6 +38,7 @@ describe Oakdex::Battle::Side do
   end
 
   describe '#send_to_battle' do
+    let(:pokemon_per_side) { 2 }
     it 'sends first pokemon to battle' do
       expect(trainer1).to receive(:send_to_battle)
         .with(pokemon1, subject)
@@ -46,34 +47,38 @@ describe Oakdex::Battle::Side do
       subject.send_to_battle
     end
 
-    context 'more than 1 pokemon' do
+    context '1 trainer' do
       let(:team1) { [pokemon1, pokemon3, pokemon4] }
       let(:team2) { [pokemon2, pokemon5] }
-      let(:pokemon_per_side) { 2 }
+      let(:trainers) { [trainer1] }
 
       it 'sends first two pokemon to battle' do
         expect(trainer1).to receive(:send_to_battle)
           .with(pokemon1, subject)
         expect(trainer1).to receive(:send_to_battle)
           .with(pokemon3, subject)
-        expect(trainer2).to receive(:send_to_battle)
-          .with(pokemon2, subject)
-        expect(trainer2).to receive(:send_to_battle)
-          .with(pokemon5, subject)
         subject.send_to_battle
       end
 
-      context 'not enough pokemon' do
-        let(:team2) { [pokemon2] }
+      context 'two trainer per side' do
+        let(:trainers) { [trainer1, trainer2] }
 
         it 'sends first two pokemon to battle' do
           expect(trainer1).to receive(:send_to_battle)
             .with(pokemon1, subject)
-          expect(trainer1).to receive(:send_to_battle)
-            .with(pokemon3, subject)
           expect(trainer2).to receive(:send_to_battle)
             .with(pokemon2, subject)
-          expect(trainer2).not_to receive(:send_to_battle)
+          subject.send_to_battle
+        end
+      end
+
+      context 'not enough pokemon' do
+        let(:team1) { [pokemon1] }
+
+        it 'sends first two pokemon to battle' do
+          expect(trainer1).to receive(:send_to_battle)
+            .with(pokemon1, subject)
+          expect(trainer1).not_to receive(:send_to_battle)
             .with(nil, subject)
           subject.send_to_battle
         end

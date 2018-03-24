@@ -25,6 +25,10 @@ module Oakdex
         recall? ? pokemon_by_position : @attributes[:pokemon]
       end
 
+      def pokemon_position
+        recall? ? @attributes[:pokemon] : nil
+      end
+
       def target
         recall? ? @attributes[:target] : target_by_position
       end

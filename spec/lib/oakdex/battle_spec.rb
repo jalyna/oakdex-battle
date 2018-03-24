@@ -30,6 +30,12 @@ describe Oakdex::Battle do
       let(:options) { { pokemon_per_side: 2 } }
       it { expect(subject.pokemon_per_side).to eq(2) }
     end
+
+    context 'more trainers per team' do
+      let(:trainer3) { double(:trainer) }
+      let(:team1) { [trainer1, trainer3] }
+      it { expect(subject.pokemon_per_side).to eq(2) }
+    end
   end
 
   describe '#valid_actions_for' do
