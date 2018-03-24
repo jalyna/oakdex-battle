@@ -12,7 +12,8 @@ require 'oakdex/battle/in_battle_pokemon'
 module Oakdex
   # Represents battle, with has n turns and m sides
   class Battle
-    attr_reader :log, :actions, :team1, :team2, :sides
+    attr_reader :log, :actions, :team1, :team2,
+                :sides, :current_log
 
     def initialize(team1, team2, options = {})
       @team1 = team1.is_a?(Array) ? team1 : [team1]
@@ -25,7 +26,7 @@ module Oakdex
     end
 
     def arena
-      { sides: @sides }
+      { sides: sides }
     end
 
     def valid_actions_for(trainer)
@@ -45,7 +46,7 @@ module Oakdex
     end
 
     def continue
-      return start if @sides.empty?
+      return start if sides.empty?
       return false unless trainers.all? { |t| valid_actions_for(t).empty? }
       execute_actions
       true
@@ -57,7 +58,7 @@ module Oakdex
 
     def winner
       return if fainted_sides.empty?
-      (@sides - fainted_sides).flat_map(&:trainers)
+      (sides - fainted_sides).flat_map(&:trainers)
     end
 
     def add_to_log(*args)
@@ -65,7 +66,7 @@ module Oakdex
     end
 
     def remove_fainted
-      @sides.each(&:remove_fainted)
+      sides.each(&:remove_fainted)
     end
 
     private
@@ -75,7 +76,7 @@ module Oakdex
     end
 
     def fainted_sides
-      @sides.select(&:fainted?)
+      sides.select(&:fainted?)
     end
 
     def start
@@ -87,13 +88,12 @@ module Oakdex
     end
 
     def execute_actions
-      turn = Turn.new(self, @actions)
-      turn.execute
+      turn = Turn.new(self, @actions).tap(&:execute)
       finish_turn
     end
 
     def trainers
-      @sides.flat_map(&:trainers)
+      sides.flat_map(&:trainers)
     end
 
     def finish_turn

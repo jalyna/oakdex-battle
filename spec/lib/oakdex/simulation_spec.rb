@@ -61,10 +61,12 @@ describe 'Battle simulation' do
 
     context '2 vs. 2' do
       let(:trainer1) do
-        Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2, pokemon5, pokemon6])
+        Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2,
+                                            pokemon5, pokemon6])
       end
       let(:trainer2) do
-        Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4, pokemon7, pokemon8])
+        Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4,
+                                              pokemon7, pokemon8])
       end
       let(:battle) { Oakdex::Battle.new(team1, team2, in_battle: 2) }
 
