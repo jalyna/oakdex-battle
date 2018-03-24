@@ -68,7 +68,7 @@ describe 'Battle simulation' do
         Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4,
                                               pokemon7, pokemon8])
       end
-      let(:battle) { Oakdex::Battle.new(team1, team2, in_battle: 2) }
+      let(:battle) { Oakdex::Battle.new(team1, team2, pokemon_per_side: 2) }
 
       5.times do |i|
         it "executes battle simulation #{i}" do

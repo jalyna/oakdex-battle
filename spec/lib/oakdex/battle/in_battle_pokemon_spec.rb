@@ -25,6 +25,14 @@ describe Oakdex::Battle::InBattlePokemon do
     it { expect(subject.pokemon).to eq(pokemon) }
   end
 
+  describe '#position' do
+    it { expect(subject.position).to eq(0) }
+    context 'position given' do
+      subject { described_class.new(pokemon, side, 1) }
+      it { expect(subject.position).to eq(1) }
+    end
+  end
+
   %i[current_hp moves_with_pp].each do |field|
     describe "##{field}" do
       it {

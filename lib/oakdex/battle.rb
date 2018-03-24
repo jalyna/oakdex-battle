@@ -23,6 +23,11 @@ module Oakdex
       @log = []
       @current_log = []
       @actions = []
+      @turns = []
+    end
+
+    def pokemon_per_side
+      @options[:pokemon_per_side] || 1
     end
 
     def arena
@@ -88,7 +93,7 @@ module Oakdex
     end
 
     def execute_actions
-      turn = Turn.new(self, @actions).tap(&:execute)
+      @turns << Turn.new(self, @actions).tap(&:execute)
       finish_turn
     end
 

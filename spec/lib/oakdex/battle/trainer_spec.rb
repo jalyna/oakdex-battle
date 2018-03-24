@@ -51,11 +51,14 @@ describe Oakdex::Battle::Trainer do
   end
 
   describe '#send_to_battle' do
+    let(:position) { 0 }
+
     before do
       allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-        .with(pokemon1, side).and_return(in_battle_pokemon)
+        .with(pokemon1, side, position).and_return(in_battle_pokemon)
       allow(side).to receive(:add_to_log)
         .with('sends_to_battle', name, pokemon1.name)
+      allow(side).to receive(:next_position).and_return(position)
     end
 
     it 'sends pokemon to battle' do
@@ -71,13 +74,16 @@ describe Oakdex::Battle::Trainer do
   end
 
   describe '#remove_from_battle' do
+    let(:position) { 0 }
+
     before do
       allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-        .with(pokemon1, side).and_return(in_battle_pokemon)
+        .with(pokemon1, side, position).and_return(in_battle_pokemon)
       allow(side).to receive(:add_to_log)
         .with('sends_to_battle', name, pokemon1.name)
       allow(side).to receive(:add_to_log)
         .with('removes_from_battle', name, pokemon1.name)
+      allow(side).to receive(:next_position).and_return(position)
       subject.send_to_battle(pokemon1, side)
     end
 
@@ -94,11 +100,13 @@ describe Oakdex::Battle::Trainer do
   end
 
   describe '#remove_fainted' do
+    let(:position) { 0 }
     before do
       allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-        .with(pokemon1, side).and_return(in_battle_pokemon)
+        .with(pokemon1, side, position).and_return(in_battle_pokemon)
       allow(side).to receive(:add_to_log)
         .with('sends_to_battle', name, pokemon1.name)
+      allow(side).to receive(:next_position).and_return(position)
       subject.send_to_battle(pokemon1, side)
     end
 
@@ -118,6 +126,8 @@ describe Oakdex::Battle::Trainer do
   end
 
   describe '#left_pokemon_in_team' do
+    let(:position) { 0 }
+
     it { expect(subject.left_pokemon_in_team).to eq(team) }
 
     context 'pokemon1 hp is zero' do
@@ -128,9 +138,10 @@ describe Oakdex::Battle::Trainer do
     context 'has in battle pokemon' do
       before do
         allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-          .with(pokemon1, side).and_return(in_battle_pokemon)
+          .with(pokemon1, side, position).and_return(in_battle_pokemon)
         allow(side).to receive(:add_to_log)
           .with('sends_to_battle', name, pokemon1.name)
+        allow(side).to receive(:next_position).and_return(position)
         subject.send_to_battle(pokemon1, side)
       end
 

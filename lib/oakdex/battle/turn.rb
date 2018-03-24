@@ -11,6 +11,7 @@ module Oakdex
 
       def execute
         ordered_actions.each do |action|
+          next if action.target.nil?
           next if action.target.current_hp.zero?
           next if action.pokemon && action.pokemon.current_hp.zero?
           action.execute(self)

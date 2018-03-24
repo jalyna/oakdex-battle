@@ -16,7 +16,8 @@ module Oakdex
       end
 
       def send_to_battle(pokemon, side)
-        @in_battle_pokemon << InBattlePokemon.new(pokemon, side)
+        @in_battle_pokemon << InBattlePokemon.new(pokemon,
+                                                  side, side.next_position)
         side.add_to_log 'sends_to_battle', name, pokemon.name
       end
 

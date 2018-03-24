@@ -11,10 +11,10 @@ module Oakdex
 
       attr_reader :pokemon, :position, :side
 
-      def initialize(pokemon, side)
+      def initialize(pokemon, side, position = 0)
         @pokemon = pokemon
         @side = side
-        @position = 0
+        @position = position
       end
 
       def fainted?

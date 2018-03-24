@@ -23,6 +23,15 @@ describe Oakdex::Battle do
     it { expect(subject.arena).to eq(sides: []) }
   end
 
+  describe '#pokemon_per_side' do
+    it { expect(subject.pokemon_per_side).to eq(1) }
+
+    context 'option given' do
+      let(:options) { { pokemon_per_side: 2 } }
+      it { expect(subject.pokemon_per_side).to eq(2) }
+    end
+  end
+
   describe '#valid_actions_for' do
     it { expect(subject.valid_actions_for(trainer1)).to eq(valid_actions) }
   end
@@ -67,7 +76,7 @@ describe Oakdex::Battle do
   describe '#add_to_log' do
     it 'adds to log' do
       subject.add_to_log 'some', 'message'
-      expect(subject.current_log).to eq([['some', 'message']])
+      expect(subject.current_log).to eq([%w[some message]])
     end
   end
 

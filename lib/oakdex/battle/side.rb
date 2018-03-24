@@ -15,9 +15,16 @@ module Oakdex
         @trainers = trainers
       end
 
+      def next_position
+        left_position.first
+      end
+
       def send_to_battle
         @trainers.map do |trainer|
-          trainer.send_to_battle(trainer.team.first, self)
+          battle.pokemon_per_side.times do |i|
+            break unless trainer.team[i]
+            trainer.send_to_battle(trainer.team[i], self)
+          end
         end
       end
 
@@ -35,6 +42,20 @@ module Oakdex
 
       def fainted?
         @trainers.all?(&:fainted?)
+      end
+
+      private
+
+      def left_position
+        all_position - taken_positions
+      end
+
+      def taken_positions
+        in_battle_pokemon.map(&:position).sort
+      end
+
+      def all_position
+        battle.pokemon_per_side.times.to_a
       end
     end
   end
