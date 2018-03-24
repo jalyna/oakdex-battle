@@ -12,17 +12,30 @@ describe Oakdex::Battle::ValidActionService do
            pokemon: pokemon1,
            action_added?: action_added)
   end
+  let(:in_battle_pokemon2) do
+    double(:in_battle_pokemon)
+  end
   let(:left_pokemon_in_team) { [] }
   let(:in_battle_pokemon_list) { [in_battle_pokemon1] }
+  let(:in_battle_pokemon_list2) { [in_battle_pokemon2] }
   let(:trainer1) do
     double(:trainer,
            in_battle_pokemon: in_battle_pokemon_list,
            left_pokemon_in_team: left_pokemon_in_team)
   end
-  let(:side1) { double(:side, trainers: [trainer1]) }
-  let(:side2) { double(:side) }
+  let(:side1) do
+    double(:side,
+           trainers: [trainer1],
+           in_battle_pokemon: in_battle_pokemon_list)
+  end
+  let(:side2) { double(:side, in_battle_pokemon: in_battle_pokemon_list2) }
   let(:battle) { double(:battle, sides: [side1, side2], actions: actions) }
   subject { described_class.new(battle) }
+
+  before do
+    allow(side1).to receive(:trainer_on_side?).with(trainer1).and_return(true)
+    allow(side2).to receive(:trainer_on_side?).with(trainer1).and_return(false)
+  end
 
   describe '#valid_actions_for' do
     it 'shows move action' do
@@ -53,6 +66,11 @@ describe Oakdex::Battle::ValidActionService do
         let(:action1) { double(:action, type: 'recall', target: pokemon2) }
         let(:actions) { [action1] }
         it { expect(subject.valid_actions_for(trainer1)).to eq([valid_move]) }
+      end
+
+      context 'no in battle pokemon on other side' do
+        let(:in_battle_pokemon_list2) { [] }
+        it { expect(subject.valid_actions_for(trainer1)).to eq([]) }
       end
 
       context 'in battle pokemon fainted' do
