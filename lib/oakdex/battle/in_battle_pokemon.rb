@@ -50,8 +50,45 @@ module Oakdex
         end
       end
 
-      def available_targets(_move)
-        other_sides.flat_map(&:in_battle_pokemon)
+      # TODO: user
+      # TODO: all_users
+      # TODO: all_adjacent
+      # TODO: adjacent_foes_all
+      # TODO: all_except_user
+      # TODO: all_foes
+      # TODO: all
+      # TODO: user_and_random_adjacent_foe
+      def available_targets(move)
+        case move.target
+        when 'target_adjacent_single'
+          adjacent_foes + adjacent_users
+        when 'target_adjacent_user_single'
+          adjacent_users
+        when 'target_user_or_adjacent_user'
+          [self] + adjacent_users
+        else
+          adjacent_foes
+        end
+      end
+
+      def target_adjacent_single
+        adjacent_foes + adjacent_users
+      end
+
+      def adjacent_foes
+        other_side.in_battle_pokemon.select do |ibp|
+          ibp.position.between?(position - 1, position + 1)
+        end
+      end
+
+      def adjacent_users
+        (@side.in_battle_pokemon - [self]).select do |ibp|
+          ibp.position.between?(position - 1, position + 1)
+        end
+      end
+
+      def other_side
+        other_sides.first
       end
 
       def other_sides
