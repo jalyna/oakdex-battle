@@ -38,7 +38,7 @@ module Oakdex
         return if recall_action_for?(target)
         {
           action: 'recall',
-          pokemon: in_battle_pokemon&.pokemon,
+          pokemon: in_battle_pokemon&.position || 0,
           target: target
         }
       end

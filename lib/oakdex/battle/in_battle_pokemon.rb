@@ -9,7 +9,7 @@ module Oakdex
       def_delegators :@pokemon, :current_hp, :moves_with_pp
       def_delegators :@side, :battle
 
-      attr_reader :pokemon
+      attr_reader :pokemon, :position, :side
 
       def initialize(pokemon, side)
         @pokemon = pokemon
@@ -34,8 +34,8 @@ module Oakdex
             {
               action: 'move',
               pokemon: pokemon,
-              move: move.name,
-              target: target
+              move: move,
+              target: [target.side, target.position]
             }
           end
         end
@@ -51,7 +51,7 @@ module Oakdex
       end
 
       def available_targets(_move)
-        other_sides.flat_map(&:in_battle_pokemon).map(&:pokemon)
+        other_sides.flat_map(&:in_battle_pokemon)
       end
 
       def other_sides

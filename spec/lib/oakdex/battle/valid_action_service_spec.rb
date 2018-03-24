@@ -8,6 +8,7 @@ describe Oakdex::Battle::ValidActionService do
   let(:actions) { [] }
   let(:in_battle_pokemon1) do
     double(:in_battle_pokemon,
+           position: 0,
            valid_move_actions: [valid_move],
            pokemon: pokemon1,
            action_added?: action_added)
@@ -47,7 +48,7 @@ describe Oakdex::Battle::ValidActionService do
       let(:recall_action) do
         {
           action: 'recall',
-          pokemon: pokemon1,
+          pokemon: in_battle_pokemon1.position,
           target: pokemon2
         }
       end
@@ -78,7 +79,7 @@ describe Oakdex::Battle::ValidActionService do
         let(:recall_action2) do
           {
             action: 'recall',
-            pokemon: nil,
+            pokemon: 0,
             target: pokemon2
           }
         end

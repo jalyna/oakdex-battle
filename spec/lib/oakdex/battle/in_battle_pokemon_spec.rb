@@ -65,7 +65,8 @@ describe Oakdex::Battle::InBattlePokemon do
     let(:moves_with_pp) { [move1] }
     let(:pokemon2) { double(:pokemon) }
     let(:in_battle_pokemon2) do
-      double(:in_battle_pokemon, pokemon: pokemon2)
+      double(:in_battle_pokemon, pokemon: pokemon2, side: side2,
+                                 position: 0)
     end
 
     before do
@@ -80,22 +81,27 @@ describe Oakdex::Battle::InBattlePokemon do
                                                  {
                                                    action: 'move',
                                                    pokemon: pokemon,
-                                                   move: move1.name,
-                                                   target: pokemon2
+                                                   move: move1,
+                                                   target: [side2, 0]
                                                  }
                                                ])
     end
 
     context 'no moves' do
       let(:moves_with_pp) { [] }
+      let(:struggle_move) { double(:struggle_move) }
+      before do
+        allow(Oakdex::Battle::Move).to receive(:new)
+          .and_return(struggle_move)
+      end
 
       it 'returns struggle' do
         expect(subject.valid_move_actions).to eq([
                                                    {
                                                      action: 'move',
                                                      pokemon: pokemon,
-                                                     move: 'Struggle',
-                                                     target: pokemon2
+                                                     move: struggle_move,
+                                                     target: [side2, 0]
                                                    }
                                                  ])
       end

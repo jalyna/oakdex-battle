@@ -1,132 +1,59 @@
 require 'spec_helper'
 
 describe Oakdex::Battle::Turn do
-  let(:pokemon1) do
-    Oakdex::Battle::Pokemon.create('Pikachu',
-                                   level: 3,
-                                   moves: [['Thunder Shock', 30, 30]]
-                                  )
+  let(:speed1) { 20 }
+  let(:speed2) { 10 }
+  let(:target1) { double(:target, current_hp: 6) }
+  let(:target2) { double(:target, current_hp: 6) }
+  let(:pokemon1) { double(:pokemon, current_hp: 6, speed: speed1) }
+  let(:pokemon2) { double(:pokemon, current_hp: 6, speed: speed2) }
+  let(:battle) { double(:battle) }
+  let(:priority1) { 1 }
+  let(:priority2) { 0 }
+  let(:action1) do
+    double(:action, priority: priority1,
+                    target: target1, pokemon: pokemon1)
   end
-  let(:pokemon2) do
-    Oakdex::Battle::Pokemon.create('Bulbasaur',
-                                   level: 3,
-                                   moves: [['Tackle', 35, 35]]
-                                  )
+  let(:action2) do
+    double(:action, priority: priority2,
+                    target: target2, pokemon: pokemon2)
   end
-  let(:trainer1) { Oakdex::Battle::Trainer.new('Ash', [pokemon1]) }
-  let(:trainer2) { Oakdex::Battle::Trainer.new('Misty', [pokemon2]) }
-  let(:attributes1) do
-    {
-      action: 'move',
-      pokemon: pokemon1,
-      target: pokemon2,
-      move: 'Thunder Shock'
-    }
-  end
-  let(:attributes2) do
-    {
-      action: 'move',
-      pokemon: pokemon2,
-      target: pokemon1,
-      move: 'Tackle'
-    }
-  end
-  let(:action1) { Oakdex::Battle::Action.new(trainer1, attributes1) }
-  let(:action2) { Oakdex::Battle::Action.new(trainer2, attributes2) }
-  let(:battle) { Oakdex::Battle.new(trainer1, trainer2) }
-
-  subject { described_class.new(battle, [action1, action2]) }
+  let(:actions) { [action1, action2] }
+  subject { described_class.new(battle, actions) }
 
   describe '#execute' do
-    let(:move1_prio) { 1 }
-    let(:move2_prio) { 0 }
-    let(:pokemon1_speed) { 100 }
-    let(:pokemon2_speed) { 100 }
-
-    before do
-      allow(pokemon1).to receive(:speed).and_return(pokemon1_speed)
-      allow(pokemon2).to receive(:speed).and_return(pokemon2_speed)
-      allow(pokemon1.moves.first).to receive(:priority).and_return(move1_prio)
-      allow(pokemon2.moves.first).to receive(:priority).and_return(move2_prio)
-    end
-
-    it 'does actions in correct order' do
-      expect(action1).to receive(:execute)
-        .with(subject)
-        .ordered
-      expect(action2).to receive(:execute)
-        .with(subject)
-        .ordered
+    it 'executes actions' do
+      expect(action1).to receive(:execute).with(subject).ordered
+      expect(action2).to receive(:execute).with(subject).ordered
       subject.execute
     end
 
-    context 'pokemon fainted' do
-      before do
-        allow(pokemon1).to receive(:current_hp).and_return(0)
-      end
+    context 'same priority' do
+      let(:priority1) { 0 }
 
-      it 'does actions in correct order' do
+      it 'executes actions' do
+        expect(action1).to receive(:execute).with(subject).ordered
+        expect(action2).to receive(:execute).with(subject).ordered
+        subject.execute
+      end
+    end
+
+    context 'target is fainted' do
+      let(:target1) { double(:target, current_hp: 0) }
+
+      it 'executes actions' do
         expect(action1).not_to receive(:execute)
-        expect(action2).not_to receive(:execute)
+        expect(action2).to receive(:execute).with(subject).ordered
         subject.execute
       end
     end
 
-    context 'move 2 has higher prio' do
-      let(:move2_prio) { 2 }
+    context 'pokemon is fainted' do
+      let(:pokemon1) { double(:pokemon, current_hp: 0, speed: speed1) }
 
-      it 'does actions in correct order' do
-        expect(action2).to receive(:execute)
-          .with(subject)
-          .ordered
-        expect(action1).to receive(:execute)
-          .with(subject)
-          .ordered
-        subject.execute
-      end
-    end
-
-    context 'same prio' do
-      let(:move1_prio) { 0 }
-      let(:pokemon2_speed) { 110 }
-
-      it 'does actions in correct order' do
-        expect(action2).to receive(:execute)
-          .with(subject)
-          .ordered
-        expect(action1).to receive(:execute)
-          .with(subject)
-          .ordered
-        subject.execute
-      end
-    end
-
-    context 'second pokemon' do
-      let(:pokemon3) do
-        Oakdex::Battle::Pokemon.create('Charmander',
-                                       level: 3,
-                                       moves: [['Tackle', 35, 35]]
-                                      )
-      end
-      let(:trainer2) do
-        Oakdex::Battle::Trainer.new('Misty',
-                                    [pokemon2, pokemon3])
-      end
-      let(:attributes2) do
-        {
-          action: 'recall',
-          pokemon: pokemon2,
-          target: pokemon3
-        }
-      end
-
-      it 'does actions in correct order' do
-        expect(action2).to receive(:execute)
-          .with(subject)
-          .ordered
-        expect(action1).to receive(:execute)
-          .with(subject)
-          .ordered
+      it 'executes actions' do
+        expect(action1).not_to receive(:execute)
+        expect(action2).to receive(:execute).with(subject).ordered
         subject.execute
       end
     end

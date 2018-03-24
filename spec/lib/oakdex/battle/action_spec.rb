@@ -1,75 +1,141 @@
 require 'spec_helper'
 
 describe Oakdex::Battle::Action do
-  let(:pokemon) do
-    Oakdex::Battle::Pokemon.create('Pikachu',
-                                   level: 3,
-                                   hp: 6,
-                                   moves: [['Thunder Shock', 30, 30]]
-                                  )
+  let(:pokemon1_accuracy) { 1.0 }
+  let(:pokemon3_evasion) { 1.0 }
+  let(:pokemon1) do
+    double(:pokemon, accuracy: pokemon1_accuracy,
+                     name: 'Pokemon1')
   end
-  let(:pokemon2) do
-    Oakdex::Battle::Pokemon.create('Bulbasaur',
-                                   level: 3,
-                                   hp: 6,
-                                   moves: [['Tackle', 35, 35]]
-                                  )
+  let(:pokemon2) { double(:pokemon, name: 'Pokemon2') }
+  let(:pokemon3) do
+    double(:pokemon, evasion: pokemon3_evasion,
+                     name: 'Pokemon3', trainer: trainer2)
   end
-  let(:trainer) { Oakdex::Battle::Trainer.new('Ash', [pokemon]) }
-  let(:attributes) do
+  let(:side1) { double(:side) }
+  let(:in_battle_pokemon_list2) { [in_battle_pokemon2] }
+  let(:side2) { double(:side, in_battle_pokemon: in_battle_pokemon_list2) }
+  let(:move1_accuracy) { 100 }
+  let(:move1) do
+    double(:move, name: 'Cool Move', priority: 0,
+                  accuracy: move1_accuracy)
+  end
+  let(:in_battle_pokemon_list1) { [in_battle_pokemon1] }
+  let(:trainer2) do
+    double(:trainer,
+           name: 'Trainer2')
+  end
+  let(:trainer1) do
+    double(:trainer,
+           in_battle_pokemon: in_battle_pokemon_list1,
+           name: 'Trainer1')
+  end
+  let(:in_battle_pokemon1) do
+    double(:in_battle_pokemon,
+           position: 0, pokemon: pokemon1)
+  end
+  let(:in_battle_pokemon2) do
+    double(:in_battle_pokemon,
+           position: 0, pokemon: pokemon3)
+  end
+  let(:move_attributes) do
     {
       action: 'move',
-      pokemon: pokemon,
-      target: pokemon2,
-      move: 'Thunder Shock'
+      pokemon: pokemon1,
+      move: move1,
+      target: [side2, in_battle_pokemon2.position]
     }
   end
-  subject { described_class.new(trainer, attributes) }
+  let(:recall_attributes) do
+    {
+      action: 'recall',
+      pokemon: in_battle_pokemon1.position,
+      target: pokemon2
+    }
+  end
+  let(:attributes) { move_attributes }
+  subject { described_class.new(trainer1, attributes) }
+
+  describe '#priority' do
+    it 'returns moves priority' do
+      expect(subject.priority).to eq(move1.priority)
+    end
+
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
+      it 'returns 6' do
+        expect(subject.priority).to eq(6)
+      end
+    end
+  end
 
   describe '#pokemon' do
-    it { expect(subject.pokemon).to eq(pokemon) }
+    it { expect(subject.pokemon).to eq(pokemon1) }
+
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
+      it { expect(subject.pokemon).to eq(pokemon1) }
+
+      context 'no in battle pokemon' do
+        let(:in_battle_pokemon_list1) { [] }
+        it { expect(subject.pokemon).to be_nil }
+      end
+    end
   end
 
   describe '#target' do
-    it { expect(subject.target).to eq(pokemon2) }
+    it { expect(subject.target).to eq(pokemon3) }
+
+    context 'no in battle pokemon' do
+      let(:in_battle_pokemon_list2) { [] }
+      it { expect(subject.target).to be_nil }
+    end
+
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
+      it { expect(subject.target).to eq(pokemon2) }
+    end
+  end
+
+  describe '#type' do
+    it { expect(subject.type).to eq('move') }
+
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
+      it { expect(subject.type).to eq('recall') }
+    end
   end
 
   describe '#move' do
-    it { expect(subject.move).to eq(pokemon.moves.first) }
-  end
+    it { expect(subject.move).to eq(move1) }
 
-  describe '#trainer' do
-    it { expect(subject.trainer).to eq(trainer) }
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
+      it { expect(subject.move).to be_nil }
+    end
   end
 
   describe '#hitting_probability' do
     it { expect(subject.hitting_probability).to eq(1000) }
 
     context 'move accuracy is less than 100' do
-      before do
-        allow(subject.move).to receive(:accuracy).and_return(80)
-      end
+      let(:move1_accuracy) { 80 }
       it { expect(subject.hitting_probability).to eq(800) }
     end
 
     context 'pokemon accuracy is less than 1' do
-      before do
-        allow(subject.pokemon).to receive(:accuracy).and_return(0.8)
-      end
+      let(:pokemon1_accuracy) { 0.8 }
       it { expect(subject.hitting_probability).to eq(800) }
     end
 
     context 'target evasion is less than 1' do
-      before do
-        allow(subject.target).to receive(:evasion).and_return(0.8)
-      end
+      let(:pokemon3_evasion) { 0.8 }
       it { expect(subject.hitting_probability).to eq(1250) }
     end
   end
 
   describe '#hitting?' do
     let(:rand_number) { 500 }
-
     before do
       allow(subject).to receive(:rand).with(1..1000).and_return(rand_number)
     end
@@ -83,169 +149,121 @@ describe Oakdex::Battle::Action do
   end
 
   describe '#execute' do
-    let(:attributes2) do
-      {
-        action: 'move',
-        pokemon: pokemon2,
-        target: pokemon,
-        move: 'Tackle'
-      }
-    end
-    let(:trainer2) { Oakdex::Battle::Trainer.new('Misty', [pokemon2]) }
-    let(:action2) { Oakdex::Battle::Action.new(trainer2, attributes2) }
-    let(:battle) { Oakdex::Battle.new(trainer, trainer2) }
-    let(:turn) { Oakdex::Battle::Turn.new(battle, [subject, action2]) }
-    let(:log) { [] }
+    let(:battle) { double(:battle, sides: [side1, side2]) }
+    let(:turn) { double(:turn, battle: battle) }
     let(:hitting) { true }
-    let(:damage) { double(:damage, damage: 3) }
+    let(:damage_points) { 4 }
+    let(:pokemon3_hp) { 10 }
+    let(:damage) { double(:damage, damage: damage_points) }
 
     before do
+      allow(battle).to receive(:add_to_log)
+      allow(battle).to receive(:remove_fainted)
+      allow(side1).to receive(:trainer_on_side?)
+        .with(trainer1).and_return(true)
+      allow(trainer1).to receive(:remove_from_battle)
+        .with(pokemon1, side1)
+      allow(trainer1).to receive(:send_to_battle)
+        .with(pokemon2, side1)
       allow(subject).to receive(:hitting?).and_return(hitting)
-      allow(battle).to receive(:add_to_log) do |*args|
-        log << args.to_a
-      end
       allow(Oakdex::Battle::Damage).to receive(:new)
         .with(turn, subject).and_return(damage)
+      allow(pokemon1).to receive(:change_pp_by)
+        .with(move1.name, -1)
+      allow(pokemon3).to receive(:change_hp_by)
+        .with(-damage_points)
+      allow(pokemon3).to receive(:current_hp).and_return(pokemon3_hp)
     end
 
-    it 'adds correct logs' do
-      subject.execute(turn)
-      expect(log)
-        .to eq([
-                 ['uses_move', 'Ash', 'Pikachu', 'Thunder Shock'],
-                 ['received_damage', 'Misty', 'Bulbasaur',
-                  'Thunder Shock', damage.damage]
-               ])
-    end
-
-    it 'sets damage object' do
-      subject.execute(turn)
-      expect(subject.damage).to eq(damage)
-    end
-
-    it 'reduces target hp' do
-      expect(pokemon2).to receive(:change_hp_by).with(-damage.damage)
+    it 'reduces pp' do
+      expect(pokemon1).to receive(:change_pp_by)
+        .with(move1.name, -1)
       subject.execute(turn)
     end
 
-    it 'reduces users pp' do
-      expect(pokemon).to receive(:change_pp_by).with('Thunder Shock', -1)
+    it 'reduces hp' do
+      expect(pokemon3).to receive(:change_hp_by)
+        .with(-damage_points)
       subject.execute(turn)
     end
 
-    it 'calls remove_fainted' do
+    it 'adds log' do
+      expect(battle).to receive(:add_to_log)
+        .with('uses_move', trainer1.name, pokemon1.name, move1.name)
+      expect(battle).to receive(:add_to_log)
+        .with('received_damage', trainer2.name, pokemon3.name,
+              move1.name, damage_points)
+      subject.execute(turn)
+    end
+
+    it 'removes fainted' do
       expect(battle).to receive(:remove_fainted)
       subject.execute(turn)
     end
 
-    context 'target faints' do
-      let(:damage) { double(:damage, damage: 8) }
-      it 'adds correct logs' do
+    context 'damage is 0' do
+      let(:damage_points) { 0 }
+
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('received_no_damage', trainer2.name,
+                pokemon3.name, move1.name)
         subject.execute(turn)
-        expect(log)
-          .to eq([
-                   ['uses_move', 'Ash', 'Pikachu', 'Thunder Shock'],
-                   ['received_damage', 'Misty', 'Bulbasaur',
-                    'Thunder Shock', damage.damage],
-                   %w[target_fainted Misty Bulbasaur]
-                 ])
       end
     end
 
-    context 'no damage' do
-      let(:damage) { double(:damage, damage: 0) }
+    context 'pokemon fainted' do
+      let(:pokemon3_hp) { 0 }
 
-      it 'adds correct logs' do
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('target_fainted', trainer2.name, pokemon3.name)
         subject.execute(turn)
-        expect(log)
-          .to eq([
-                   ['uses_move', 'Ash', 'Pikachu', 'Thunder Shock'],
-                   ['received_no_damage', 'Misty', 'Bulbasaur',
-                    'Thunder Shock']
-                 ])
-      end
-
-      it 'sets damage object' do
-        subject.execute(turn)
-        expect(subject.damage).to eq(damage)
       end
     end
 
     context 'not hitting' do
       let(:hitting) { false }
 
-      it 'adds correct logs' do
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('move_does_not_hit', trainer1.name,
+                pokemon1.name, move1.name)
         subject.execute(turn)
-        expect(log)
-          .to eq([['move_does_not_hit', 'Ash', 'Pikachu', 'Thunder Shock']])
-      end
-
-      it 'does not set damage object' do
-        subject.execute(turn)
-        expect(subject.damage).to be_nil
       end
     end
 
-    context 'recall' do
-      let(:side1) { double(:side) }
-      let(:side2) { double(:side) }
-      let(:sides) { [side1, side2] }
-      before do
-        allow(battle).to receive(:sides).and_return(sides)
-        allow(side1).to receive(:trainer_on_side?)
-          .with(trainer).and_return(true)
-        allow(side1).to receive(:add_to_log)
-      end
-      let(:pokemon3) do
-        Oakdex::Battle::Pokemon.create('Charmander',
-                                       level: 3,
-                                       hp: 6,
-                                       moves: [['Tackle', 30, 30]]
-                                      )
-      end
-      let(:attributes) do
-        {
-          action: 'recall',
-          pokemon: pokemon,
-          target: pokemon3
-        }
-      end
-      let(:trainer) { Oakdex::Battle::Trainer.new('Ash', [pokemon, pokemon3]) }
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
 
-      it 'adds correct logs' do
-        subject.execute(turn)
-        expect(log)
-          .to eq([
-                   %w[recalls Ash Pikachu Charmander]
-                 ])
-      end
-
-      it 'adds new pokemon to arena and removes other' do
-        expect(trainer).to receive(:send_to_battle).with(pokemon3, side1)
-        expect(trainer).to receive(:remove_from_battle).with(pokemon, side1)
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('recalls', trainer1.name, pokemon1.name, pokemon2.name)
         subject.execute(turn)
       end
 
-      context 'pokemon fainted' do
-        let(:attributes) do
-          {
-            action: 'recall',
-            pokemon: nil,
-            target: pokemon3
-          }
-        end
+      it 'switches pokemon' do
+        expect(trainer1).to receive(:remove_from_battle)
+          .with(pokemon1, side1)
+        expect(trainer1).to receive(:send_to_battle)
+          .with(pokemon2, side1)
+        subject.execute(turn)
+      end
 
-        it 'adds correct logs' do
+      context 'no pokemon in battle' do
+        let(:in_battle_pokemon_list1) { [] }
+
+        it 'adds log' do
+          expect(battle).to receive(:add_to_log)
+            .with('recalls_for_fainted', trainer1.name, pokemon2.name)
           subject.execute(turn)
-          expect(log)
-            .to eq([
-                     %w[recalls_for_fainted Ash Charmander]
-                   ])
         end
 
-        it 'adds new pokemon to arena' do
-          expect(trainer).to receive(:send_to_battle).with(pokemon3, side1)
-          expect(trainer).not_to receive(:remove_from_battle)
+        it 'recalls pokemon' do
+          expect(trainer1).not_to receive(:remove_from_battle)
+            .with(pokemon1, side1)
+          expect(trainer1).to receive(:send_to_battle)
+            .with(pokemon2, side1)
           subject.execute(turn)
         end
       end

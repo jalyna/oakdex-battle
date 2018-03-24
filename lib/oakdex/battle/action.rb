@@ -4,6 +4,8 @@ module Oakdex
   class Battle
     # Represents one Action. One turn has many actions.
     class Action
+      RECALL_PRIORITY = 6
+
       extend Forwardable
 
       def_delegators :@turn, :battle
@@ -16,15 +18,15 @@ module Oakdex
       end
 
       def priority
-        move ? move.priority : 6
+        move&.priority || RECALL_PRIORITY
       end
 
       def pokemon
-        @attributes[:pokemon]
+        recall? ? pokemon_by_position : @attributes[:pokemon]
       end
 
       def target
-        @attributes[:target]
+        recall? ? @attributes[:target] : target_by_position
       end
 
       def type
@@ -32,8 +34,7 @@ module Oakdex
       end
 
       def move
-        return nil unless type == 'move'
-        pokemon.moves.find { |m| m.name == @attributes[:move] }
+        @attributes[:move]
       end
 
       def hitting_probability
@@ -60,6 +61,20 @@ module Oakdex
       end
 
       private
+
+      def recall?
+        type == 'recall'
+      end
+
+      def pokemon_by_position
+        trainer.in_battle_pokemon
+          .find { |ibp| ibp.position == @attributes[:pokemon] }&.pokemon
+      end
+
+      def target_by_position
+        @attributes[:target][0].in_battle_pokemon
+          .find { |ibp| ibp.position == @attributes[:target][1] }&.pokemon
+      end
 
       def side
         battle.sides.find { |s| s.trainer_on_side?(trainer) }
