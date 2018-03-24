@@ -60,14 +60,13 @@ module Oakdex
       # TODO: user_and_random_adjacent_foe
       def available_targets(move)
         case move.target
+        when 'user' then [self]
+        when 'target_adjacent_user_single' then adjacent_users
         when 'target_adjacent_single'
           adjacent_foes + adjacent_users
-        when 'target_adjacent_user_single'
-          adjacent_users
         when 'target_user_or_adjacent_user'
           [self] + adjacent_users
-        else
-          adjacent_foes
+        else adjacent_foes
         end
       end
 

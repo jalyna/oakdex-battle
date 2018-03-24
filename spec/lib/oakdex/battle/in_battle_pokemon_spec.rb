@@ -146,6 +146,15 @@ describe Oakdex::Battle::InBattlePokemon do
             .to eq([[side, 0], [side, 1]])
         end
       end
+
+      context 'user' do
+        let(:target) { 'user' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[side, 0]])
+        end
+      end
     end
 
     context 'no moves' do
