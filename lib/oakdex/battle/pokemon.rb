@@ -10,6 +10,7 @@ module Oakdex
       extend Forwardable
 
       BATTLE_STATS = %i[hp atk def sp_atk sp_def speed]
+      OTHER_STATS = %i[accuracy evasion critical_hit]
 
       def_delegators :@species, :types
 
@@ -23,6 +24,7 @@ module Oakdex
       def initialize(species, attributes = {})
         @species = species
         @attributes = attributes
+        reset_stats
       end
 
       def name
@@ -59,31 +61,72 @@ module Oakdex
                   end
       end
 
+      def change_stat_by(stat, change_by)
+        modifiers = stage_multipliers(stat)
+        stat_before = @stat_modifiers[stat]
+        min_value = modifiers.keys.first
+        max_value = modifiers.keys.last
+        @stat_modifiers[stat] = if change_by < 0
+                                  [stat_before + change_by, min_value].max
+                                else
+                                  [stat_before + change_by, max_value].min
+                                end
+        stat_before != @stat_modifiers[stat]
+      end
+
+      def reset_stats
+        @stat_modifiers = (BATTLE_STATS + OTHER_STATS - %i[hp]).map do |stat|
+          [stat, 0]
+        end.to_h
+      end
+
       def level
         PokemonStat.level_by_exp(@species.leveling_rate, @attributes[:exp])
       end
 
       def accuracy
-        1.0 # TODO: add stages
+        stage(:accuracy)
       end
 
       def evasion
-        1.0 # TODO: add stages
+        stage(:evasion)
       end
 
       def critical_hit_prob
-        Rational(1, 16) # TODO: add stages
+        stage(:critical_hit)
       end
 
       BATTLE_STATS.each do |stat|
         define_method stat do
-          PokemonStat.initial_stat(stat,
-                                   level:      level,
-                                   nature:     @attributes[:nature],
-                                   iv:         @attributes[:iv],
-                                   ev:         @attributes[:ev],
-                                   base_stats: @species.base_stats
-                                  )
+          (initial_stat(stat) * stage(stat)).to_i
+        end
+      end
+
+      private
+
+      def stage(stat)
+        multipliers = stage_multipliers(stat)
+        multipliers[@stat_modifiers[stat] || 0]
+      end
+
+      def initial_stat(stat)
+        PokemonStat.initial_stat(stat,
+                                 level:      level,
+                                 nature:     @attributes[:nature],
+                                 iv:         @attributes[:iv],
+                                 ev:         @attributes[:ev],
+                                 base_stats: @species.base_stats
+                                )
+      end
+
+      def stage_multipliers(stat)
+        case stat
+        when :evasion, :accuracy
+          PokemonStat::STAGE_MULTIPLIERS_ACC_EVA
+        when :critical_hit
+          PokemonStat::STAGE_MULTIPLIERS_CRITICAL_HIT
+        else
+          PokemonStat::STAGE_MULTIPLIERS
         end
       end
     end

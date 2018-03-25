@@ -108,7 +108,7 @@ describe Oakdex::Battle::Pokemon do
   end
 
   describe '#critical_hit_prob' do
-    it { expect(subject.critical_hit_prob).to eq(Rational(1, 16)) }
+    it { expect(subject.critical_hit_prob).to eq(Rational(1, 24)) }
   end
 
   describe '#moves_with_pp' do
@@ -144,6 +144,85 @@ describe Oakdex::Battle::Pokemon do
     context 'more than max' do
       let(:change_by) { 200 }
       it { expect(subject.current_hp).to eq(17) }
+    end
+  end
+
+  describe '#reset_stats' do
+    let(:initial_stat) { 100 }
+    before do
+      subject.change_stat_by(:atk, 2)
+      subject.change_stat_by(:def, -3)
+      subject.change_stat_by(:evasion, 3)
+      allow(Oakdex::Battle::PokemonStat).to receive(:initial_stat)
+        .with(:atk, anything).and_return(initial_stat)
+      allow(Oakdex::Battle::PokemonStat).to receive(:initial_stat)
+        .with(:def, anything).and_return(initial_stat)
+    end
+
+    it 'resets stats' do
+      subject.reset_stats
+      expect(subject.atk).to eq(initial_stat)
+      expect(subject.atk).to eq(initial_stat)
+      expect(subject.evasion).to eq(Rational(1, 1))
+    end
+  end
+
+  describe '#change_stat_by' do
+    let(:change_by) { -2 }
+    let(:stat) { :atk }
+    let(:initial_stat) { 100 }
+    before do
+      allow(Oakdex::Battle::PokemonStat).to receive(:initial_stat)
+        .with(stat, anything).and_return(initial_stat)
+    end
+
+    it 'returns true when value was changed' do
+      expect(subject.change_stat_by(stat, change_by)).to be(true)
+    end
+
+    context 'stat is at minimum' do
+      let(:change_by) { -6 }
+      before { subject.change_stat_by(stat, change_by) }
+      it 'returns false when value was changed' do
+        expect(subject.change_stat_by(stat, change_by)).to be(false)
+      end
+    end
+
+    context 'stat changed' do
+      before { subject.change_stat_by(stat, change_by) }
+      it {
+        expect(subject.atk).to eq((initial_stat *
+        Oakdex::Battle::PokemonStat::STAGE_MULTIPLIERS[-2]).to_i)
+      }
+
+      context 'accuracy' do
+        let(:stat) { :accuracy }
+
+        it {
+          expect(subject.accuracy)
+            .to eq(Oakdex::Battle::PokemonStat::STAGE_MULTIPLIERS_ACC_EVA[-2])
+        }
+      end
+
+      context 'evasion' do
+        let(:stat) { :evasion }
+
+        it {
+          expect(subject.evasion)
+            .to eq(Oakdex::Battle::PokemonStat::STAGE_MULTIPLIERS_ACC_EVA[-2])
+        }
+      end
+
+      context 'critical_hit' do
+        let(:stat) { :critical_hit }
+        let(:change_by) { 1 }
+
+        it {
+          expect(subject.critical_hit_prob)
+            .to eq(Oakdex::Battle::PokemonStat::
+              STAGE_MULTIPLIERS_CRITICAL_HIT[1])
+        }
+      end
     end
   end
 
