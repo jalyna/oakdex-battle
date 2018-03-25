@@ -84,6 +84,7 @@ describe Oakdex::Battle::Trainer do
       allow(side).to receive(:add_to_log)
         .with('removes_from_battle', name, pokemon1.name)
       allow(side).to receive(:next_position).and_return(position)
+      allow(pokemon1).to receive(:reset_stats)
       subject.send_to_battle(pokemon1, side)
     end
 
@@ -95,6 +96,11 @@ describe Oakdex::Battle::Trainer do
     it 'adds to logs' do
       expect(side).to receive(:add_to_log)
         .with('removes_from_battle', name, pokemon1.name)
+      subject.remove_from_battle(pokemon1, side)
+    end
+
+    it 'reset stats' do
+      expect(pokemon1).to receive(:reset_stats)
       subject.remove_from_battle(pokemon1, side)
     end
   end

@@ -4,10 +4,19 @@ describe Oakdex::Battle::MoveExecution do
   let(:move1_accuracy) { 100 }
   let(:pokemon1_accuracy) { 1.0 }
   let(:target_evasion) { 1.0 }
-  let(:move1) { double(:move, accuracy: move1_accuracy, name: 'cool move') }
+  let(:move1_power) { 100 }
+  let(:move1_stat_modifiers) { [] }
+  let(:move1) do
+    double(:move,
+           accuracy: move1_accuracy,
+           name: 'cool move',
+           power: move1_power,
+           stat_modifiers: move1_stat_modifiers)
+  end
   let(:pokemon1) do
     double(:pokemon1,
-           accuracy: pokemon1_accuracy, name: 'attacker')
+           accuracy: pokemon1_accuracy, name: 'attacker',
+           trainer: trainer1)
   end
   let(:target) do
     double(:target, evasion: target_evasion,
@@ -100,6 +109,102 @@ describe Oakdex::Battle::MoveExecution do
     it 'removes fainted' do
       expect(battle).to receive(:remove_fainted)
       subject.execute
+    end
+
+    context 'move that has no power' do
+      let(:move1_power) { 0 }
+
+      it 'does not reduce hp' do
+        expect(target).not_to receive(:change_hp_by)
+        subject.execute
+      end
+
+      it 'add logs' do
+        expect(battle).to receive(:add_to_log)
+          .with('uses_move', trainer1.name, pokemon1.name, move1.name)
+        expect(battle).not_to receive(:add_to_log)
+          .with('received_damage', trainer2.name, target.name,
+                move1.name, damage_points)
+        subject.execute
+      end
+
+      context 'with stat modifier' do
+        let(:changed_stat) { true }
+        let(:stat) { 'atk' }
+        let(:affects_user) { false }
+        let(:move1_stat_modifiers) do
+          [
+            {
+              'stat' => stat,
+              'change_by' => -2,
+              'affects_user' => affects_user
+            }
+          ]
+        end
+
+        before do
+          allow(target).to receive(:change_stat_by).and_return(changed_stat)
+          allow(pokemon1).to receive(:change_stat_by).and_return(changed_stat)
+        end
+
+        it 'changes stat' do
+          expect(target).to receive(:change_stat_by)
+            .with(:atk, -2).and_return(changed_stat)
+          subject.execute
+        end
+
+        it 'add logs' do
+          expect(battle).to receive(:add_to_log)
+            .with('uses_move', trainer1.name, pokemon1.name, move1.name)
+          expect(battle).to receive(:add_to_log)
+            .with('changes_stat', trainer2.name, target.name,
+                  'atk', -2)
+          subject.execute
+        end
+
+        context 'affects user' do
+          let(:affects_user) { true }
+          it 'changes stat' do
+            expect(pokemon1).to receive(:change_stat_by)
+              .with(:atk, -2).and_return(changed_stat)
+            subject.execute
+          end
+
+          it 'add logs' do
+            expect(battle).to receive(:add_to_log)
+              .with('uses_move', trainer1.name, pokemon1.name, move1.name)
+            expect(battle).to receive(:add_to_log)
+              .with('changes_stat', trainer1.name, pokemon1.name,
+                    'atk', -2)
+            subject.execute
+          end
+        end
+
+        context 'random stat' do
+          let(:stat) { 'random' }
+          it 'changes stat' do
+            expect(target).to receive(:change_stat_by)
+              .with(anything, -2).and_return(changed_stat)
+            subject.execute
+          end
+        end
+
+        context 'stat was not changed' do
+          let(:changed_stat) { false }
+
+          it 'add logs' do
+            expect(battle).to receive(:add_to_log)
+              .with('uses_move', trainer1.name, pokemon1.name, move1.name)
+            expect(battle).not_to receive(:add_to_log)
+              .with('changes_stat', trainer2.name, target.name,
+                    'atk', -2)
+            expect(battle).to receive(:add_to_log)
+              .with('changes_no_stat', trainer2.name, target.name,
+                    'atk', -2)
+            subject.execute
+          end
+        end
+      end
     end
 
     context 'damage is 0' do

@@ -25,6 +25,7 @@ module Oakdex
         @in_battle_pokemon = @in_battle_pokemon.select do |ibp|
           ibp.pokemon != pokemon
         end
+        pokemon.reset_stats
         side.add_to_log 'removes_from_battle', name, pokemon.name
       end
 

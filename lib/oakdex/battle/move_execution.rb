@@ -32,6 +32,7 @@ module Oakdex
         if hitting?
           add_uses_move_log
           execute_damage
+          execute_stat_modifiers
         else
           add_move_does_not_hit_log
         end
@@ -41,7 +42,25 @@ module Oakdex
 
       private
 
+      def execute_stat_modifiers
+        return if move.stat_modifiers.empty?
+        move.stat_modifiers.each do |stat_modifier|
+          modifier_target = stat_modifier['affects_user'] ? pokemon : target
+          stat = stat_modifier['stat']
+          stat = random_stat if stat == 'random'
+          if modifier_target.change_stat_by(stat.to_sym,
+                                            stat_modifier['change_by'])
+            add_changes_stat_log(modifier_target, stat,
+                                 stat_modifier['change_by'])
+          else
+            add_changes_no_stat_log(modifier_target, stat,
+                                    stat_modifier['change_by'])
+          end
+        end
+      end
+
       def execute_damage
+        return if move.power.zero?
         @damage = Damage.new(turn, self)
         if @damage.damage > 0
           add_received_damage_log
@@ -52,8 +71,22 @@ module Oakdex
         end
       end
 
+      def random_stat
+        (Pokemon::BATTLE_STATS + Pokemon::OTHER_STATS).sample
+      end
+
       def add_log(*args)
         battle.add_to_log(*args)
+      end
+
+      def add_changes_stat_log(target, stat, change_by)
+        add_log 'changes_stat', target.trainer.name, target.name,
+                stat, change_by
+      end
+
+      def add_changes_no_stat_log(target, stat, change_by)
+        add_log 'changes_no_stat', target.trainer.name, target.name,
+                stat, change_by
       end
 
       def add_uses_move_log

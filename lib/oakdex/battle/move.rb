@@ -10,7 +10,7 @@ module Oakdex
       attr_accessor :pp
 
       def_delegators :@move_type, :target, :priority, :accuracy,
-                     :category, :power, :type
+                     :category, :power, :type, :stat_modifiers
 
       def initialize(move_type, pp, max_pp)
         @move_type  = move_type
