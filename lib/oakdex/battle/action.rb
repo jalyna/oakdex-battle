@@ -10,7 +10,7 @@ module Oakdex
 
       def_delegators :@turn, :battle
 
-      attr_reader :trainer, :damage
+      attr_reader :trainer, :damage, :turn
 
       def initialize(trainer, attributes)
         @trainer = trainer
@@ -30,7 +30,7 @@ module Oakdex
       end
 
       def target
-        recall? ? @attributes[:target] : target_by_position
+        recall? ? @attributes[:target] : targets
       end
 
       def type
@@ -53,18 +53,19 @@ module Oakdex
       def execute(turn)
         @turn = turn
         return execute_recall if type == 'recall'
-        pokemon.change_pp_by(move.name, -1)
-        if hitting?
-          add_uses_move_log
-          execute_damage
-        else
-          add_move_does_not_hit_log
-        end
-
-        battle.remove_fainted
+        targets.each { |t| MoveExecution.new(self, t).execute }
       end
 
       private
+
+      def targets
+        list = @attributes[:target]
+        reutrn [] if list.empty?
+        list = [list] unless list[0].is_a?(Array)
+        list.map do |target|
+          target_by_position(target[0], target[1])
+        end.compact
+      end
 
       def recall?
         type == 'recall'
@@ -75,9 +76,10 @@ module Oakdex
           .find { |ibp| ibp.position == @attributes[:pokemon] }&.pokemon
       end
 
-      def target_by_position
-        @attributes[:target][0].in_battle_pokemon
-          .find { |ibp| ibp.position == @attributes[:target][1] }&.pokemon
+      def target_by_position(side, position)
+        raise "XXXX #{@attributes[:target].inspect}" if side.nil?
+        side.in_battle_pokemon
+          .find { |ibp| ibp.position == position }&.pokemon
       end
 
       def side
@@ -94,17 +96,6 @@ module Oakdex
         end
       end
 
-      def execute_damage
-        @damage = Damage.new(@turn, self)
-        if @damage.damage > 0
-          add_received_damage_log
-          target.change_hp_by(-@damage.damage)
-          add_target_fainted_log if target.current_hp.zero?
-        else
-          add_received_no_damage_log
-        end
-      end
-
       def add_log(*args)
         battle.add_to_log(*args)
       end
@@ -115,28 +106,6 @@ module Oakdex
         else
           add_log 'recalls_for_fainted', trainer.name, target.name
         end
-      end
-
-      def add_uses_move_log
-        add_log 'uses_move', trainer.name, pokemon.name, move.name
-      end
-
-      def add_move_does_not_hit_log
-        add_log 'move_does_not_hit', trainer.name, pokemon.name, move.name
-      end
-
-      def add_target_fainted_log
-        add_log 'target_fainted', target.trainer.name, target.name
-      end
-
-      def add_received_damage_log
-        add_log 'received_damage', target.trainer.name, target.name,
-                move.name, @damage.damage
-      end
-
-      def add_received_no_damage_log
-        add_log 'received_no_damage', target.trainer.name, target.name,
-                move.name
       end
     end
   end

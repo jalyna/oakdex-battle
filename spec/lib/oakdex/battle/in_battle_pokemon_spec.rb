@@ -3,6 +3,7 @@ require 'spec_helper'
 describe Oakdex::Battle::InBattlePokemon do
   let(:actions) { [] }
   let(:hp_zero) { false }
+  let(:pokemon_per_side) { 1 }
   let(:current_hp) { double(:current_hp, zero?: hp_zero) }
   let(:moves_with_pp) { double(:moves_with_pp) }
   let(:pokemon) do
@@ -13,7 +14,7 @@ describe Oakdex::Battle::InBattlePokemon do
   let(:side) { double(:side1, battle: battle) }
   let(:side2) { double(:side2, battle: battle) }
   let(:sides) { [side, side2] }
-  let(:battle) { double(:battle) }
+  let(:battle) { double(:battle, pokemon_per_side: pokemon_per_side) }
   subject { described_class.new(pokemon, side) }
 
   before do
@@ -115,6 +116,7 @@ describe Oakdex::Battle::InBattlePokemon do
     end
 
     context '3 vs. 3' do
+      let(:pokemon_per_side) { 3 }
       before do
         allow(side2).to receive(:in_battle_pokemon) do
           [in_battle_pokemon2, in_battle_pokemon3, in_battle_pokemon4]
@@ -153,6 +155,70 @@ describe Oakdex::Battle::InBattlePokemon do
         it 'returns targets' do
           expect(subject.valid_move_actions.map { |m| m[:target] })
             .to eq([[side, 0]])
+        end
+      end
+
+      context 'user_and_random_adjacent_foe' do
+        let(:target) { 'user_and_random_adjacent_foe' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[side, 0]])
+        end
+      end
+
+      context 'all_users' do
+        let(:target) { 'all_users' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[[side, 0], [side, 1], [side, 2]]])
+        end
+      end
+
+      context 'all_adjacent' do
+        let(:target) { 'all_adjacent' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[[side2, 0], [side2, 1], [side, 1]]])
+        end
+      end
+
+      context 'adjacent_foes_all' do
+        let(:target) { 'adjacent_foes_all' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[[side2, 0], [side2, 1]]])
+        end
+      end
+
+      context 'all_foes' do
+        let(:target) { 'all_foes' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[[side2, 0], [side2, 1], [side2, 2]]])
+        end
+      end
+
+      context 'all_except_user' do
+        let(:target) { 'all_except_user' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 1], [side, 2]]])
+        end
+      end
+
+      context 'all' do
+        let(:target) { 'all' }
+
+        it 'returns targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
+                     [side, 1], [side, 2]]])
         end
       end
     end

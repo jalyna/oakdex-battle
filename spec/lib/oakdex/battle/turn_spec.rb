@@ -5,6 +5,8 @@ describe Oakdex::Battle::Turn do
   let(:speed2) { 10 }
   let(:target1) { double(:target, current_hp: 6) }
   let(:target2) { double(:target, current_hp: 6) }
+  let(:target_list1) { [target1] }
+  let(:target_list2) { [target2] }
   let(:pokemon1) { double(:pokemon, current_hp: 6, speed: speed1) }
   let(:pokemon2) { double(:pokemon, current_hp: 6, speed: speed2) }
   let(:battle) { double(:battle) }
@@ -12,11 +14,11 @@ describe Oakdex::Battle::Turn do
   let(:priority2) { 0 }
   let(:action1) do
     double(:action, priority: priority1,
-                    target: target1, pokemon: pokemon1)
+                    target: target_list1, pokemon: pokemon1)
   end
   let(:action2) do
     double(:action, priority: priority2,
-                    target: target2, pokemon: pokemon2)
+                    target: target_list2, pokemon: pokemon2)
   end
   let(:actions) { [action1, action2] }
   subject { described_class.new(battle, actions) }

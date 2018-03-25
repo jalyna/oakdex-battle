@@ -11,14 +11,20 @@ module Oakdex
 
       def execute
         ordered_actions.each do |action|
-          next if action.target.nil?
-          next if action.target.current_hp.zero?
+          next unless valid_target?(action)
           next if action.pokemon && action.pokemon.current_hp.zero?
           action.execute(self)
         end
       end
 
       private
+
+      def valid_target?(action)
+        targets = action.target.is_a?(Array) ? action.target : [action.target]
+        targets.all? do |target|
+          !target.nil? && !target.current_hp.zero?
+        end
+      end
 
       def ordered_actions
         @ordered_actions ||= @actions.sort { |a, b| compare_actions(a, b) }

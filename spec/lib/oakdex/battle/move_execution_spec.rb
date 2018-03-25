@@ -1,0 +1,137 @@
+require 'spec_helper'
+
+describe Oakdex::Battle::MoveExecution do
+  let(:move1_accuracy) { 100 }
+  let(:pokemon1_accuracy) { 1.0 }
+  let(:target_evasion) { 1.0 }
+  let(:move1) { double(:move, accuracy: move1_accuracy, name: 'cool move') }
+  let(:pokemon1) do
+    double(:pokemon1,
+           accuracy: pokemon1_accuracy, name: 'attacker')
+  end
+  let(:target) do
+    double(:target, evasion: target_evasion,
+                    trainer: trainer2, name: 'defender')
+  end
+  let(:trainer1) { double(:trainer, name: 'test') }
+  let(:trainer2) { double(:trainer, name: 'trainer2') }
+  let(:battle) { double(:battle) }
+  let(:turn) { double(:turn) }
+  let(:action) do
+    double(:action, move: move1, pokemon: pokemon1,
+                    trainer: trainer1, battle: battle, turn: turn)
+  end
+  let(:turn) { double(:turn, battle: battle) }
+  let(:hitting) { true }
+  let(:damage_points) { 4 }
+  let(:target_hp) { 10 }
+  let(:damage) { double(:damage, damage: damage_points) }
+
+  subject { described_class.new(action, target) }
+
+  describe '#hitting_probability' do
+    it { expect(subject.hitting_probability).to eq(1000) }
+
+    context 'move accuracy is less than 100' do
+      let(:move1_accuracy) { 80 }
+      it { expect(subject.hitting_probability).to eq(800) }
+    end
+
+    context 'pokemon accuracy is less than 1' do
+      let(:pokemon1_accuracy) { 0.8 }
+      it { expect(subject.hitting_probability).to eq(800) }
+    end
+
+    context 'target evasion is less than 1' do
+      let(:target_evasion) { 0.8 }
+      it { expect(subject.hitting_probability).to eq(1250) }
+    end
+  end
+
+  describe '#hitting?' do
+    let(:rand_number) { 500 }
+    before do
+      allow(subject).to receive(:rand).with(1..1000).and_return(rand_number)
+    end
+
+    it { expect(subject).to be_hitting }
+
+    context 'not hitting' do
+      let(:rand_number) { 1001 }
+      it { expect(subject).not_to be_hitting }
+    end
+  end
+
+  describe '#execute' do
+    before do
+      allow(battle).to receive(:add_to_log)
+      allow(battle).to receive(:remove_fainted)
+      allow(subject).to receive(:hitting?).and_return(hitting)
+      allow(Oakdex::Battle::Damage).to receive(:new)
+        .with(turn, subject).and_return(damage)
+      allow(pokemon1).to receive(:change_pp_by)
+        .with(move1.name, -1)
+      allow(target).to receive(:change_hp_by)
+        .with(-damage_points)
+      allow(target).to receive(:current_hp).and_return(target_hp)
+    end
+
+    it 'reduces pp' do
+      expect(pokemon1).to receive(:change_pp_by)
+        .with(move1.name, -1)
+      subject.execute
+    end
+
+    it 'reduces hp' do
+      expect(target).to receive(:change_hp_by)
+        .with(-damage_points)
+      subject.execute
+    end
+
+    it 'adds log' do
+      expect(battle).to receive(:add_to_log)
+        .with('uses_move', trainer1.name, pokemon1.name, move1.name)
+      expect(battle).to receive(:add_to_log)
+        .with('received_damage', trainer2.name, target.name,
+              move1.name, damage_points)
+      subject.execute
+    end
+
+    it 'removes fainted' do
+      expect(battle).to receive(:remove_fainted)
+      subject.execute
+    end
+
+    context 'damage is 0' do
+      let(:damage_points) { 0 }
+
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('received_no_damage', trainer2.name,
+                target.name, move1.name)
+        subject.execute
+      end
+    end
+
+    context 'pokemon fainted' do
+      let(:target_hp) { 0 }
+
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('target_fainted', trainer2.name, target.name)
+        subject.execute
+      end
+    end
+
+    context 'not hitting' do
+      let(:hitting) { false }
+
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('move_does_not_hit', trainer1.name,
+                pokemon1.name, move1.name)
+        subject.execute
+      end
+    end
+  end
+end

@@ -92,7 +92,7 @@ battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4])
 
 ## TODOs for 0.0.1
 
-- [ ] Implement different target types
+- [x] Implement different target types
 - [ ] Setup basic stat modifier changing moves
 - [ ] Setup basic conditions with moves
 

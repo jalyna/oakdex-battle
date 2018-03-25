@@ -5,7 +5,13 @@ describe 'Battle simulation' do
     Oakdex::Battle::Pokemon.create('Pikachu', level: 5)
   end
   let(:pokemon2) do
-    Oakdex::Battle::Pokemon.create('Bulbasaur', level: 5)
+    Oakdex::Battle::Pokemon.create('Bulbasaur',
+                                   level: 5,
+                                   moves: [
+                                     ['Aromatherapy', 30, 30],
+                                     ['Gravity', 2, 2]
+                                   ]
+                                  )
   end
   let(:pokemon3) do
     Oakdex::Battle::Pokemon.create('Squirtle', level: 5)

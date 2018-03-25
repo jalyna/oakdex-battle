@@ -58,8 +58,13 @@ describe Oakdex::Battle::Damage do
   let(:move_type) { 'Fire' }
   let(:pokemon1_types) { ['Normal'] }
   let(:pokemon2_types) { ['Normal'] }
+  let(:move_execution1) do
+    double(:move_execution,
+           action: action1, target: pokemon2, move: pokemon1.moves.first,
+           pokemon: pokemon1)
+  end
 
-  subject { described_class.new(turn, action1) }
+  subject { described_class.new(turn, move_execution1) }
 
   before do
     allow(pokemon2).to receive(:def).and_return(def_val)

@@ -35,7 +35,7 @@ module Oakdex
               action: 'move',
               pokemon: pokemon,
               move: move,
-              target: [target.side, target.position]
+              target: target
             }
           end
         end
@@ -50,40 +50,78 @@ module Oakdex
         end
       end
 
-      # TODO: user
-      # TODO: all_users
-      # TODO: all_adjacent
-      # TODO: adjacent_foes_all
-      # TODO: all_except_user
-      # TODO: all_foes
-      # TODO: all
-      # TODO: user_and_random_adjacent_foe
       def available_targets(move)
+        with_target(move) || multiple_targets_adjacent(move) ||
+          multiple_targets(move) || []
+      end
+
+      def multiple_targets(move)
         case move.target
-        when 'user' then [self]
-        when 'target_adjacent_user_single' then adjacent_users
-        when 'target_adjacent_single'
-          adjacent_foes + adjacent_users
-        when 'target_user_or_adjacent_user'
-          [self] + adjacent_users
-        else adjacent_foes
+        when 'all_users' then [all_users]
+        when 'all_except_user' then [all_targets - [self_target]]
+        when 'all' then [all_targets]
+        when 'all_foes' then [all_foes]
         end
+      end
+
+      def multiple_targets_adjacent(move)
+        case move.target
+        when 'all_adjacent' then [adjacent]
+        when 'adjacent_foes_all' then [adjacent_foes]
+        end
+      end
+
+      def with_target(move)
+        case move.target
+        when 'user', 'user_and_random_adjacent_foe' then [self_target]
+        when 'target_adjacent_user_single' then adjacent_users
+        when 'target_adjacent_single' then adjacent
+        when 'target_user_or_adjacent_user'
+          [self_target] + adjacent_users
+        end
+      end
+
+      def all_targets
+        all_foes + all_users
       end
 
       def target_adjacent_single
         adjacent_foes + adjacent_users
       end
 
+      def adjacent
+        adjacent_foes + adjacent_users
+      end
+
+      def self_target
+        [@side, position]
+      end
+
       def adjacent_foes
-        other_side.in_battle_pokemon.select do |ibp|
-          ibp.position.between?(position - 1, position + 1)
-        end
+        [
+          [other_side, position - 1],
+          [other_side, position],
+          [other_side, position + 1]
+        ].select { |t| t[1] >= 0 && t[1] < pokemon_per_side }
       end
 
       def adjacent_users
-        (@side.in_battle_pokemon - [self]).select do |ibp|
-          ibp.position.between?(position - 1, position + 1)
-        end
+        [
+          [@side, position - 1],
+          [@side, position + 1]
+        ].select { |t| t[1] >= 0 && t[1] < pokemon_per_side }
+      end
+
+      def all_users
+        pokemon_per_side.times.map { |i| [@side, i] }
+      end
+
+      def all_foes
+        pokemon_per_side.times.map { |i| [other_side, i] }
+      end
+
+      def pokemon_per_side
+        battle.pokemon_per_side
       end
 
       def other_side

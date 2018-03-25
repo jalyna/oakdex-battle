@@ -2,6 +2,7 @@ require 'oakdex/pokedex'
 
 require 'oakdex/battle/pokemon'
 require 'oakdex/battle/trainer'
+require 'oakdex/battle/move_execution'
 require 'oakdex/battle/action'
 require 'oakdex/battle/damage'
 require 'oakdex/battle/turn'
