@@ -2,6 +2,45 @@ module Oakdex
   class Battle
     # Calculates Pokemon Stats
     class PokemonStat
+      STAGE_MULTIPLIERS = {
+        -6 => Rational(2, 8),
+        -5 => Rational(2, 7),
+        -4 => Rational(2, 6),
+        -3 => Rational(2, 5),
+        -2 => Rational(2, 4),
+        -1 => Rational(2, 3),
+        0 => Rational(2, 2),
+        1 => Rational(3, 2),
+        2 => Rational(4, 2),
+        3 => Rational(5, 2),
+        4 => Rational(6, 2),
+        5 => Rational(7, 2),
+        6 => Rational(8, 2)
+      }
+
+      STAGE_MULTIPLIERS_CRITICAL_HIT = {
+        0 => Rational(1, 24),
+        1 => Rational(1, 8),
+        2 => Rational(1, 2),
+        3 => Rational(1, 1)
+      }
+
+      STAGE_MULTIPLIERS_ACC_EVA = {
+        -6 => Rational(3, 9),
+        -5 => Rational(3, 8),
+        -4 => Rational(3, 7),
+        -3 => Rational(3, 6),
+        -2 => Rational(3, 5),
+        -1 => Rational(3, 4),
+        0 => Rational(3, 3),
+        1 => Rational(4, 3),
+        2 => Rational(5, 3),
+        3 => Rational(6, 3),
+        4 => Rational(7, 3),
+        5 => Rational(8, 3),
+        6 => Rational(9, 3)
+      }
+
       class << self
         def initial_stat(stat, options = {})
           first_part = initial_stat_first_part(stat, options)
