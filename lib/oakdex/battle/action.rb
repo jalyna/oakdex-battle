@@ -59,12 +59,16 @@ module Oakdex
       private
 
       def targets
+        target_list.map do |target|
+          target_by_position(target[0], target[1])
+        end.compact
+      end
+
+      def target_list
         list = @attributes[:target]
         reutrn [] if list.empty?
         list = [list] unless list[0].is_a?(Array)
-        list.map do |target|
-          target_by_position(target[0], target[1])
-        end.compact
+        list
       end
 
       def recall?

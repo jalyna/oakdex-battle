@@ -86,10 +86,7 @@ describe 'Battle simulation' do
             battle.simulate_action(trainer2)
             battle.simulate_action(trainer2)
             battle.continue
-          end
-
-          battle.log.each do |log|
-            puts log.inspect
+            puts battle.log.last.inspect
           end
 
           puts "WINNER: #{battle.winner.map(&:name)}" if battle.winner

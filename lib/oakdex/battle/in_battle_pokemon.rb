@@ -30,7 +30,7 @@ module Oakdex
         moves = moves_with_pp
         moves = [struggle_move] if moves_with_pp.empty?
         moves.flat_map do |move|
-          available_targets(move).map do |target|
+          targets_in_battle(move).map do |target|
             {
               action: 'move',
               pokemon: pokemon,
@@ -42,6 +42,25 @@ module Oakdex
       end
 
       private
+
+      def targets_in_battle(move)
+        available_targets(move).map do |targets|
+          if targets.last.is_a?(Array)
+            targets if targets_in_battle?(targets)
+          elsif target_in_battle?(targets)
+            targets
+          end
+        end.compact.reject(&:empty?)
+      end
+
+      def targets_in_battle?(targets)
+        targets.any? { |target| target[0].pokemon_in_battle?(target[1]) }
+      end
+
+      def target_in_battle?(target)
+        target[0].pokemon_in_battle?(target[1]) ||
+          (!target[0].pokemon_left? && target[1] == 0)
+      end
 
       def struggle_move
         @struggle_move ||= begin

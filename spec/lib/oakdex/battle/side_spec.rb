@@ -139,4 +139,34 @@ describe Oakdex::Battle::Side do
       end
     end
   end
+
+  describe '#pokemon_in_battle?' do
+    let(:in_battle_pokemon1) { double(:in_battle_pokemon, position: 0) }
+    let(:in_battle_pokemon_list1) { [in_battle_pokemon1] }
+    let(:trainers) { [trainer1] }
+    before do
+      allow(trainer1).to receive(:in_battle_pokemon)
+        .and_return(in_battle_pokemon_list1)
+    end
+
+    it { expect(subject).to be_pokemon_in_battle(0) }
+    it { expect(subject).not_to be_pokemon_in_battle(1) }
+  end
+
+  describe '#pokemon_left?' do
+    let(:in_battle_pokemon1) { double(:in_battle_pokemon, position: 0) }
+    let(:in_battle_pokemon_list1) { [in_battle_pokemon1] }
+    let(:trainers) { [trainer1] }
+    before do
+      allow(trainer1).to receive(:in_battle_pokemon)
+        .and_return(in_battle_pokemon_list1)
+    end
+
+    it { expect(subject).to be_pokemon_left }
+
+    context 'no pokemon' do
+      let(:in_battle_pokemon_list1) { [] }
+      it { expect(subject).not_to be_pokemon_left }
+    end
+  end
 end

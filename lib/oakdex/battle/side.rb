@@ -36,6 +36,16 @@ module Oakdex
         @trainers.include?(trainer)
       end
 
+      def pokemon_in_battle?(position)
+        in_battle_pokemon.any? do |ibp|
+          ibp.position == position
+        end
+      end
+
+      def pokemon_left?
+        !in_battle_pokemon.empty?
+      end
+
       def in_battle_pokemon
         @trainers.map(&:in_battle_pokemon).flatten(1)
       end

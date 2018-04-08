@@ -20,6 +20,12 @@ describe Oakdex::Battle::InBattlePokemon do
   before do
     allow(battle).to receive(:sides).and_return(sides)
     allow(battle).to receive(:actions).and_return(actions)
+    allow(side2).to receive(:pokemon_in_battle?).with(0).and_return(true)
+    allow(side2).to receive(:pokemon_in_battle?).with(1).and_return(true)
+    allow(side2).to receive(:pokemon_in_battle?).with(2).and_return(true)
+    allow(side).to receive(:pokemon_in_battle?).with(0).and_return(true)
+    allow(side).to receive(:pokemon_in_battle?).with(1).and_return(true)
+    allow(side).to receive(:pokemon_in_battle?).with(2).and_return(true)
   end
 
   describe '#pokemon' do
@@ -219,6 +225,61 @@ describe Oakdex::Battle::InBattlePokemon do
           expect(subject.valid_move_actions.map { |m| m[:target] })
             .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
                      [side, 1], [side, 2]]])
+        end
+      end
+
+      context 'not all pokemon in battle' do
+        before do
+          allow(side2).to receive(:pokemon_in_battle?).with(1).and_return(false)
+          allow(side2).to receive(:pokemon_in_battle?).with(2).and_return(false)
+          allow(side2).to receive(:pokemon_left?).and_return(true)
+        end
+
+        it 'returns available targets' do
+          expect(subject.valid_move_actions.map { |m| m[:target] })
+            .to eq([[side2, 0], [side, 1]])
+        end
+
+        context 'all' do
+          let(:target) { 'all' }
+
+          it 'returns targets' do
+            expect(subject.valid_move_actions.map { |m| m[:target] })
+              .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
+                       [side, 1], [side, 2]]])
+          end
+        end
+
+        context 'whole side not available' do
+          before do
+            allow(side2).to receive(:pokemon_in_battle?)
+              .with(0).and_return(false)
+            allow(side2).to receive(:pokemon_left?).and_return(false)
+          end
+
+          it 'returns available targets' do
+            expect(subject.valid_move_actions.map { |m| m[:target] })
+              .to eq([[side2, 0], [side, 1]])
+          end
+
+          context 'all' do
+            let(:target) { 'all' }
+
+            it 'returns targets' do
+              expect(subject.valid_move_actions.map { |m| m[:target] })
+                .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
+                         [side, 1], [side, 2]]])
+            end
+          end
+
+          context 'all_foes' do
+            let(:target) { 'all_foes' }
+
+            it 'returns targets' do
+              expect(subject.valid_move_actions.map { |m| m[:target] })
+                .to be_empty
+            end
+          end
         end
       end
     end
