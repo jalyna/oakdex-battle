@@ -226,6 +226,52 @@ describe Oakdex::Battle::Pokemon do
     end
   end
 
+  describe '#add_status_condition' do
+    let(:condition) { 'poison' }
+    let(:condition_class) { ::Oakdex::Battle::StatusConditions::Poison }
+    let(:status_condition) { double(:status_condition) }
+
+    before do
+      allow(condition_class).to receive(:new)
+        .with(subject).and_return(status_condition)
+      subject.add_status_condition(condition)
+    end
+
+    it { expect(subject.status_conditions).to eq([status_condition]) }
+
+    context 'burn' do
+      let(:condition) { 'burn' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Burn }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+
+    context 'freeze' do
+      let(:condition) { 'freeze' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Freeze }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+
+    context 'paralysis' do
+      let(:condition) { 'paralysis' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Paralysis }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+
+    context 'badly_poisoned' do
+      let(:condition) { 'badly_poisoned' }
+      let(:condition_class) do
+        ::Oakdex::Battle::StatusConditions::BadlyPoisoned
+      end
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+
+    context 'sleep' do
+      let(:condition) { 'sleep' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Sleep }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+  end
+
   describe '#change_pp_by' do
     let(:change_by) { -1 }
     let(:move_name) { 'Thunder Shock' }

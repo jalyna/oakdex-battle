@@ -2,6 +2,7 @@ require 'forwardable'
 require 'oakdex/battle/pokemon_stat'
 require 'oakdex/battle/move'
 require 'oakdex/battle/pokemon_factory'
+require 'oakdex/battle/status_conditions'
 
 module Oakdex
   class Battle
@@ -11,6 +12,14 @@ module Oakdex
 
       BATTLE_STATS = %i[hp atk def sp_atk sp_def speed]
       OTHER_STATS = %i[accuracy evasion critical_hit]
+      STATUS_CONDITIONS = {
+        'poison' => StatusConditions::Poison,
+        'burn' => StatusConditions::Burn,
+        'freeze' => StatusConditions::Freeze,
+        'paralysis' => StatusConditions::Paralysis,
+        'badly_poisoned' => StatusConditions::BadlyPoisoned,
+        'sleep' => StatusConditions::Sleep
+      }
 
       def_delegators :@species, :types
 
@@ -24,6 +33,7 @@ module Oakdex
       def initialize(species, attributes = {})
         @species = species
         @attributes = attributes
+        @attributes[:status_conditions] ||= []
         reset_stats
       end
 
@@ -37,6 +47,10 @@ module Oakdex
 
       def current_hp
         @attributes[:hp]
+      end
+
+      def status_conditions
+        @attributes[:status_conditions]
       end
 
       def moves_with_pp
@@ -74,6 +88,10 @@ module Oakdex
         stat_before != @stat_modifiers[stat]
       end
 
+      def add_status_condition(condition_name)
+        @attributes[:status_conditions] << status_condition(condition_name)
+      end
+
       def reset_stats
         @stat_modifiers = (BATTLE_STATS + OTHER_STATS - %i[hp]).map do |stat|
           [stat, 0]
@@ -103,6 +121,10 @@ module Oakdex
       end
 
       private
+
+      def status_condition(condition_name)
+        STATUS_CONDITIONS[condition_name].new(self)
+      end
 
       def stage(stat)
         multipliers = stage_multipliers(stat)

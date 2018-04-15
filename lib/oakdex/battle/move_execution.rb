@@ -33,6 +33,7 @@ module Oakdex
           add_uses_move_log
           execute_damage
           execute_stat_modifiers
+          execute_status_conditions
         else
           add_move_does_not_hit_log
         end
@@ -41,6 +42,23 @@ module Oakdex
       end
 
       private
+
+      def execute_status_conditions
+        status_conditions.each do |condition|
+          execute_status_condition(condition)
+        end
+      end
+
+      def status_conditions
+        return [] if move.in_battle_properties.nil?
+        move.in_battle_properties['status_conditions'] || []
+      end
+
+      def execute_status_condition(condition)
+        return unless rand(1..100) <= condition['probability']
+        add_target_condition_added(condition['condition'])
+        target.add_status_condition(condition['condition'])
+      end
 
       def execute_stat_modifiers
         return if move.stat_modifiers.empty?
@@ -87,6 +105,11 @@ module Oakdex
       def add_changes_no_stat_log(target, stat, change_by)
         add_log 'changes_no_stat', target.trainer.name, target.name,
                 stat, change_by
+      end
+
+      def add_target_condition_added(condition_name)
+        add_log 'target_condition_added', target.trainer.name, target.name,
+                condition_name
       end
 
       def add_uses_move_log

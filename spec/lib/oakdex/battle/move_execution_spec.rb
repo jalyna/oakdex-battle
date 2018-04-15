@@ -5,13 +5,15 @@ describe Oakdex::Battle::MoveExecution do
   let(:pokemon1_accuracy) { 1.0 }
   let(:target_evasion) { 1.0 }
   let(:move1_power) { 100 }
+  let(:in_battle_properties) { nil }
   let(:move1_stat_modifiers) { [] }
   let(:move1) do
     double(:move,
            accuracy: move1_accuracy,
            name: 'cool move',
            power: move1_power,
-           stat_modifiers: move1_stat_modifiers)
+           stat_modifiers: move1_stat_modifiers,
+           in_battle_properties: in_battle_properties)
   end
   let(:pokemon1) do
     double(:pokemon1,
@@ -126,6 +128,56 @@ describe Oakdex::Battle::MoveExecution do
           .with('received_damage', trainer2.name, target.name,
                 move1.name, damage_points)
         subject.execute
+      end
+
+      context 'with Non-volatile status' do
+        let(:condition) { 'poison' }
+        let(:probability) { 100 }
+        let(:in_battle_properties) do
+          {
+            'status_conditions' => [
+              {
+                'condition' => condition,
+                'probability' => probability
+              }
+            ]
+          }
+        end
+        let(:rand_number) { 20 }
+        before do
+          allow(subject).to receive(:rand).with(1..100).and_return(rand_number)
+          allow(target).to receive(:add_status_condition).with(condition)
+        end
+
+        it 'adds logs' do
+          expect(battle).to receive(:add_to_log)
+            .with('target_condition_added', trainer2.name,
+                  target.name, condition)
+          subject.execute
+        end
+
+        it 'adds condition' do
+          expect(target).to receive(:add_status_condition)
+            .with(condition)
+          subject.execute
+        end
+
+        context 'probability is less' do
+          let(:probability) { 10 }
+
+          it 'does not add logs' do
+            expect(battle).not_to receive(:add_to_log)
+              .with('target_condition_added', trainer2.name,
+                    target.name, condition)
+            subject.execute
+          end
+
+          it 'does not add condition' do
+            expect(target).not_to receive(:add_status_condition)
+              .with(condition)
+            subject.execute
+          end
+        end
       end
 
       context 'with stat modifier' do

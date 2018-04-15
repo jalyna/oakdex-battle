@@ -9,7 +9,8 @@ describe 'Battle simulation' do
                                    level: 5,
                                    moves: [
                                      ['Aromatherapy', 30, 30],
-                                     ['Gravity', 2, 2]
+                                     ['Gravity', 2, 2],
+                                     ['Poison Gas', 10, 10]
                                    ]
                                   )
   end
