@@ -12,6 +12,11 @@ describe Oakdex::Battle::Turn do
   let(:battle) { double(:battle) }
   let(:priority1) { 1 }
   let(:priority2) { 0 }
+  let(:status_conditions) { [] }
+  let(:in_battle_pokemon1) do
+    double(:in_battle_pokemon1, pokemon: pokemon1)
+  end
+  let(:side1) { double(:side1, in_battle_pokemon: [in_battle_pokemon1]) }
   let(:action1) do
     double(:action, priority: priority1,
                     target: target_list1, pokemon: pokemon1)
@@ -22,6 +27,13 @@ describe Oakdex::Battle::Turn do
   end
   let(:actions) { [action1, action2] }
   subject { described_class.new(battle, actions) }
+
+  before do
+    allow(battle).to receive(:remove_fainted)
+    allow(battle).to receive(:sides).and_return([side1])
+    allow(pokemon1).to receive(:status_conditions)
+      .and_return(status_conditions)
+  end
 
   describe '#execute' do
     it 'executes actions' do
@@ -56,6 +68,21 @@ describe Oakdex::Battle::Turn do
       it 'executes actions' do
         expect(action1).not_to receive(:execute)
         expect(action2).to receive(:execute).with(subject).ordered
+        subject.execute
+      end
+    end
+
+    context 'with status conditions' do
+      let(:status_condition) { double(:status_condition) }
+      let(:status_conditions) { [status_condition] }
+      before do
+        allow(action1).to receive(:execute).with(subject)
+        allow(action2).to receive(:execute).with(subject)
+      end
+
+      it 'executes status_condition' do
+        expect(status_condition).to receive(:after_turn).with(subject)
+        expect(battle).to receive(:remove_fainted)
         subject.execute
       end
     end

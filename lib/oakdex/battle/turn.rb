@@ -1,7 +1,12 @@
+require 'forwardable'
+
 module Oakdex
   class Battle
     # Represents one Turn within the battle
     class Turn
+      extend Forwardable
+
+      def_delegators :@battle, :sides
       attr_reader :battle
 
       def initialize(battle, actions)
@@ -15,9 +20,24 @@ module Oakdex
           next if action.pokemon && action.pokemon.current_hp.zero?
           action.execute(self)
         end
+
+        status_conditions_after_turn
       end
 
       private
+
+      def status_conditions_after_turn
+        status_conditions.each do |status_condition|
+          status_condition.after_turn(self)
+        end
+        battle.remove_fainted
+      end
+
+      def status_conditions
+        sides.flat_map(&:in_battle_pokemon)
+          .map(&:pokemon)
+          .flat_map(&:status_conditions)
+      end
 
       def valid_target?(action)
         targets = action.target.is_a?(Array) ? action.target : [action.target]

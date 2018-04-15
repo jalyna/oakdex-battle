@@ -83,7 +83,6 @@ module Oakdex
         if @damage.damage > 0
           add_received_damage_log
           target.change_hp_by(-@damage.damage)
-          add_target_fainted_log if target.current_hp.zero?
         else
           add_received_no_damage_log
         end
@@ -118,10 +117,6 @@ module Oakdex
 
       def add_move_does_not_hit_log
         add_log 'move_does_not_hit', trainer.name, pokemon.name, move.name
-      end
-
-      def add_target_fainted_log
-        add_log 'target_fainted', target.trainer.name, target.name
       end
 
       def add_received_damage_log

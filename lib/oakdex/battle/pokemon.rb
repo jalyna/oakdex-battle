@@ -92,6 +92,11 @@ module Oakdex
         @attributes[:status_conditions] << status_condition(condition_name)
       end
 
+      def remove_status_condition(condition)
+        @attributes[:status_conditions] = @attributes[:status_conditions]
+          .reject { |s| s == condition }
+      end
+
       def reset_stats
         @stat_modifiers = (BATTLE_STATS + OTHER_STATS - %i[hp]).map do |stat|
           [stat, 0]

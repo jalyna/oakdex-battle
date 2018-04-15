@@ -272,6 +272,24 @@ describe Oakdex::Battle::Pokemon do
     end
   end
 
+  describe '#remove_status_condition' do
+    let(:condition) { 'poison' }
+    let(:condition_class) { ::Oakdex::Battle::StatusConditions::Poison }
+    let(:status_condition) { double(:status_condition) }
+
+    before do
+      allow(condition_class).to receive(:new)
+        .with(subject).and_return(status_condition)
+      subject.add_status_condition(condition)
+    end
+
+    it 'removes condition' do
+      expect(subject.status_conditions).to eq([status_condition])
+      subject.remove_status_condition(status_condition)
+      expect(subject.status_conditions).to be_empty
+    end
+  end
+
   describe '#change_pp_by' do
     let(:change_by) { -1 }
     let(:move_name) { 'Thunder Shock' }

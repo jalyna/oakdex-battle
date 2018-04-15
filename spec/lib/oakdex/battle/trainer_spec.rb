@@ -18,9 +18,11 @@ describe Oakdex::Battle::Trainer do
   let(:team) { [pokemon1, pokemon2] }
   let(:side) { double(:side) }
   let(:fainted) { false }
+  let(:battle) { double(:battle) }
   let(:in_battle_pokemon) do
     double(:in_battle_pokemon, fainted?: fainted,
-                               pokemon: pokemon1)
+                               pokemon: pokemon1,
+                               battle: battle)
   end
   subject { described_class.new(name, team) }
 
@@ -107,16 +109,20 @@ describe Oakdex::Battle::Trainer do
 
   describe '#remove_fainted' do
     let(:position) { 0 }
+    let(:status_condition) { double(:status_condition) }
     before do
       allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
         .with(pokemon1, side, position).and_return(in_battle_pokemon)
       allow(side).to receive(:add_to_log)
         .with('sends_to_battle', name, pokemon1.name)
       allow(side).to receive(:next_position).and_return(position)
+      allow(pokemon1).to receive(:status_conditions)
+        .and_return([status_condition])
       subject.send_to_battle(pokemon1, side)
     end
 
     it 'does nothing' do
+      expect(battle).not_to receive(:add_to_log)
       subject.remove_fainted
       expect(subject.in_battle_pokemon).to eq([in_battle_pokemon])
     end
@@ -125,6 +131,9 @@ describe Oakdex::Battle::Trainer do
       let(:fainted) { true }
 
       it 'removes fainted' do
+        expect(battle).to receive(:add_to_log)
+          .with('pokemon_fainted', name, pokemon1.name)
+        expect(status_condition).to receive(:after_fainted).with(battle)
         subject.remove_fainted
         expect(subject.in_battle_pokemon).to eq([])
       end

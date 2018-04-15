@@ -270,16 +270,6 @@ describe Oakdex::Battle::MoveExecution do
       end
     end
 
-    context 'pokemon fainted' do
-      let(:target_hp) { 0 }
-
-      it 'adds log' do
-        expect(battle).to receive(:add_to_log)
-          .with('target_fainted', trainer2.name, target.name)
-        subject.execute
-      end
-    end
-
     context 'not hitting' do
       let(:hitting) { false }
 

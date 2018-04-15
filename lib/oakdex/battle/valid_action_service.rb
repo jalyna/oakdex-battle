@@ -14,7 +14,7 @@ module Oakdex
 
       def valid_actions_for(trainer)
         return [] if sides.empty?
-        return [] if no_battle_pokemon?(trainer)
+        return [] if no_battle_pokemon?(trainer) && own_battle_pokemon?(trainer)
         valid_move_actions_for(trainer) + valid_recall_actions_for(trainer)
       end
 
@@ -71,6 +71,10 @@ module Oakdex
 
       def no_battle_pokemon?(trainer)
         other_sides(trainer).all? { |s| s.in_battle_pokemon.empty? }
+      end
+
+      def own_battle_pokemon?(trainer)
+        !side(trainer).in_battle_pokemon.empty?
       end
 
       def other_sides(trainer)

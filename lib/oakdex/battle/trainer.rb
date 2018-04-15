@@ -30,6 +30,12 @@ module Oakdex
       end
 
       def remove_fainted
+        @in_battle_pokemon.each do |ibp|
+          next unless ibp.fainted?
+          ibp.battle.add_to_log('pokemon_fainted', name, ibp.pokemon.name)
+          ibp.pokemon.status_conditions
+            .each { |s| s.after_fainted(ibp.battle) }
+        end
         @in_battle_pokemon = @in_battle_pokemon.reject(&:fainted?)
       end
 

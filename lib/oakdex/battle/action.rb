@@ -81,7 +81,6 @@ module Oakdex
       end
 
       def target_by_position(side, position)
-        raise "XXXX #{@attributes[:target].inspect}" if side.nil?
         side.in_battle_pokemon
           .find { |ibp| ibp.position == position }&.pokemon
       end
