@@ -12,6 +12,8 @@ module Oakdex
         def after_turn(turn); end
 
         def after_fainted(battle); end
+
+        def after_switched_out(battle); end
       end
     end
   end

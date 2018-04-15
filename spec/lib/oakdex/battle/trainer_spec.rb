@@ -77,6 +77,7 @@ describe Oakdex::Battle::Trainer do
 
   describe '#remove_from_battle' do
     let(:position) { 0 }
+    let(:status_condition) { double(:status_condition) }
 
     before do
       allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
@@ -87,10 +88,16 @@ describe Oakdex::Battle::Trainer do
         .with('removes_from_battle', name, pokemon1.name)
       allow(side).to receive(:next_position).and_return(position)
       allow(pokemon1).to receive(:reset_stats)
+      allow(pokemon1).to receive(:status_conditions)
+        .and_return([status_condition])
+      allow(status_condition).to receive(:after_switched_out)
+        .with(battle)
       subject.send_to_battle(pokemon1, side)
     end
 
     it 'removes pokemon from battle' do
+      expect(status_condition).to receive(:after_switched_out)
+        .with(battle)
       subject.remove_from_battle(pokemon1, side)
       expect(subject.in_battle_pokemon).to eq([])
     end

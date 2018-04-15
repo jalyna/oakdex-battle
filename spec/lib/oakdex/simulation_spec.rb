@@ -10,7 +10,8 @@ describe 'Battle simulation' do
                                    moves: [
                                      ['Aromatherapy', 30, 30],
                                      ['Gravity', 2, 2],
-                                     ['Poison Gas', 10, 10]
+                                     ['Poison Gas', 10, 10],
+                                     ['Toxic', 10, 10]
                                    ]
                                   )
   end

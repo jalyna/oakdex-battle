@@ -22,10 +22,12 @@ module Oakdex
       end
 
       def remove_from_battle(pokemon, side)
-        @in_battle_pokemon = @in_battle_pokemon.select do |ibp|
-          ibp.pokemon != pokemon
-        end
+        ibp_to_remove = @in_battle_pokemon.find { |ibp| ibp.pokemon == pokemon }
         pokemon.reset_stats
+        pokemon.status_conditions.each do |s|
+          s.after_switched_out(ibp_to_remove.battle)
+        end
+        @in_battle_pokemon -= [ibp_to_remove]
         side.add_to_log 'removes_from_battle', name, pokemon.name
       end
 
