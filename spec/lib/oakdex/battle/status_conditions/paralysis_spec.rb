@@ -41,4 +41,11 @@ describe Oakdex::Battle::StatusConditions::Paralysis do
       end
     end
   end
+
+  describe '#after_fainted' do
+    it 'removes status condition' do
+      expect(pokemon).to receive(:remove_status_condition).with(subject)
+      subject.after_fainted(battle)
+    end
+  end
 end

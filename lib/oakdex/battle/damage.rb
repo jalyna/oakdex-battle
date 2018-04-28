@@ -35,7 +35,13 @@ module Oakdex
       def modifier
         target_modifier * weather_modifier * critical_hit_modifier *
           random_modifier * stab_modifier * type_modifier *
-          burn_modifier * other_modifiers
+          burn_modifier * status_condition_modifier * other_modifiers
+      end
+
+      def status_condition_modifier
+        pokemon.status_conditions.reduce(1.0) do |modifier, condition|
+          modifier * condition.damage_modifier(@action)
+        end
       end
 
       def target_modifier

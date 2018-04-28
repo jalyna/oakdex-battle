@@ -84,6 +84,19 @@ describe Oakdex::Battle::Damage do
   describe '#damage' do
     it { expect(subject.damage).to eq(7) }
 
+    context 'status condition' do
+      let(:condition) { double(:condition) }
+      before do
+        allow(pokemon1).to receive(:status_conditions)
+          .and_return([condition])
+        allow(condition).to receive(:damage_modifier)
+          .with(move_execution1)
+          .and_return(0.5)
+      end
+
+      it { expect(subject.damage).to eq(3) }
+    end
+
     context 'higher level' do
       let(:level1) { 8 }
       it { expect(subject.damage).to eq(11) }

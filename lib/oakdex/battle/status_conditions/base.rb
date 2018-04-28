@@ -19,6 +19,10 @@ module Oakdex
           1.0
         end
 
+        def damage_modifier(_move_execution)
+          1.0
+        end
+
         def prevents_move?(_move_execution)
           false
         end

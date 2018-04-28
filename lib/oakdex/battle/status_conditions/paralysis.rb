@@ -8,6 +8,10 @@ module Oakdex
           super
         end
 
+        def after_fainted(_battle)
+          pokemon.remove_status_condition(self)
+        end
+
         def prevents_move?(move_execution)
           if rand(1..100) <= 25
             move_execution
