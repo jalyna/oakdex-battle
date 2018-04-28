@@ -1,4 +1,5 @@
 require 'oakdex/battle/status_conditions/base'
+require 'oakdex/battle/status_conditions/non_volatile'
 require 'oakdex/battle/status_conditions/poison'
 require 'oakdex/battle/status_conditions/burn'
 require 'oakdex/battle/status_conditions/freeze'

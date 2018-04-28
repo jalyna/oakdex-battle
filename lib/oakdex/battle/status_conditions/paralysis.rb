@@ -2,14 +2,10 @@ module Oakdex
   class Battle
     module StatusConditions
       # Represents Paralysis status condition
-      class Paralysis < Base
+      class Paralysis < NonVolatile
         def stat_modifier(stat)
           return 0.5 if stat == :speed
           super
-        end
-
-        def after_fainted(_battle)
-          pokemon.remove_status_condition(self)
         end
 
         def prevents_move?(move_execution)

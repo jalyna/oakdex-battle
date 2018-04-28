@@ -2,7 +2,7 @@ module Oakdex
   class Battle
     module StatusConditions
       # Represents BadlyPoisoned status condition
-      class BadlyPoisoned < Base
+      class BadlyPoisoned < NonVolatile
         def initialize(pokemon)
           super
           @turn_count = 0
@@ -15,10 +15,6 @@ module Oakdex
                                  pokemon.name, hp_by_turn)
           pokemon.change_hp_by(hp_by_turn)
           @turn_count += 1
-        end
-
-        def after_fainted(_battle)
-          pokemon.remove_status_condition(self)
         end
 
         def after_switched_out(_battle)

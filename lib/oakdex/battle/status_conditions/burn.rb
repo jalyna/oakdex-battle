@@ -2,7 +2,7 @@ module Oakdex
   class Battle
     module StatusConditions
       # Represents Burn status condition
-      class Burn < Base
+      class Burn < NonVolatile
         def after_turn(turn)
           return if pokemon.current_hp.zero?
           turn.battle.add_to_log('damage_by_burn',
@@ -13,10 +13,6 @@ module Oakdex
 
         def damage_modifier(move_execution)
           move_execution.move.category == 'physical' ? 0.5 : super
-        end
-
-        def after_fainted(_battle)
-          pokemon.remove_status_condition(self)
         end
 
         private
