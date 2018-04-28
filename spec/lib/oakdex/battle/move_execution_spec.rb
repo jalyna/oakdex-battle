@@ -37,8 +37,13 @@ describe Oakdex::Battle::MoveExecution do
   let(:damage_points) { 4 }
   let(:target_hp) { 10 }
   let(:damage) { double(:damage, damage: damage_points) }
+  let(:conditions) { [] }
 
   subject { described_class.new(action, target) }
+
+  before do
+    allow(pokemon1).to receive(:status_conditions).and_return(conditions)
+  end
 
   describe '#hitting_probability' do
     it { expect(subject.hitting_probability).to eq(1000) }
@@ -111,6 +116,34 @@ describe Oakdex::Battle::MoveExecution do
     it 'removes fainted' do
       expect(battle).to receive(:remove_fainted)
       subject.execute
+    end
+
+    context 'status condition' do
+      let(:condition) { double(:condition) }
+      let(:prevents) { true }
+      let(:conditions) { [condition] }
+
+      before do
+        allow(condition).to receive(:prevents_move?)
+          .with(subject)
+          .and_return(prevents)
+      end
+
+      it 'does nothing' do
+        expect(battle).not_to receive(:add_to_log)
+        expect(target).not_to receive(:change_hp_by)
+        subject.execute
+      end
+
+      context 'does not prevent' do
+        let(:prevents) { false }
+
+        it 'does it normally' do
+          expect(battle).to receive(:add_to_log)
+          expect(target).to receive(:change_hp_by)
+          subject.execute
+        end
+      end
     end
 
     context 'move that has no power' do

@@ -97,6 +97,18 @@ describe Oakdex::Battle::Pokemon do
 
   describe '#speed' do
     it { expect(subject.speed).to eq(12) }
+
+    context 'status condition given' do
+      let(:condition) { double(:condition) }
+      before do
+        allow(subject).to receive(:status_conditions)
+          .and_return([condition])
+        allow(condition).to receive(:stat_modifier).with(:speed)
+          .and_return(1.5)
+      end
+
+      it { expect(subject.speed).to eq(12 * 1.5) }
+    end
   end
 
   describe '#accuracy' do

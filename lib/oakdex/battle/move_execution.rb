@@ -28,6 +28,7 @@ module Oakdex
       end
 
       def execute
+        return if prevented_by_status_condition?
         pokemon.change_pp_by(move.name, -1)
         if hitting?
           add_uses_move_log
@@ -42,6 +43,12 @@ module Oakdex
       end
 
       private
+
+      def prevented_by_status_condition?
+        pokemon.status_conditions.reduce(false) do |res, condition|
+          res || condition.prevents_move?(self)
+        end
+      end
 
       def execute_status_conditions
         status_conditions.each do |condition|

@@ -14,6 +14,14 @@ module Oakdex
         def after_fainted(battle); end
 
         def after_switched_out(battle); end
+
+        def stat_modifier(_stat)
+          1.0
+        end
+
+        def prevents_move?(_move_execution)
+          false
+        end
       end
     end
   end

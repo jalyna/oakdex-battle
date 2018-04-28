@@ -2,7 +2,11 @@ require 'spec_helper'
 
 describe 'Battle simulation' do
   let(:pokemon1) do
-    Oakdex::Battle::Pokemon.create('Pikachu', level: 5)
+    Oakdex::Battle::Pokemon.create('Pikachu', level: 5,
+                                              moves: [
+                                                ['Nuzzle', 30, 30],
+                                                ['Poison Gas', 10, 10]
+                                              ])
   end
   let(:pokemon2) do
     Oakdex::Battle::Pokemon.create('Bulbasaur',

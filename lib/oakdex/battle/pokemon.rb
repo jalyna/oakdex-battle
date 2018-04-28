@@ -121,11 +121,18 @@ module Oakdex
 
       BATTLE_STATS.each do |stat|
         define_method stat do
-          (initial_stat(stat) * stage(stat)).to_i
+          (initial_stat(stat) * stage(stat) *
+            status_condition_modifier(stat)).to_i
         end
       end
 
       private
+
+      def status_condition_modifier(stat)
+        status_conditions.reduce(1.0) do |modifier, condition|
+          condition.stat_modifier(stat) * modifier
+        end
+      end
 
       def status_condition(condition_name)
         STATUS_CONDITIONS[condition_name].new(self)
