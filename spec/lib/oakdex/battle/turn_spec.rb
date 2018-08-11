@@ -80,8 +80,16 @@ describe Oakdex::Battle::Turn do
         allow(action2).to receive(:execute).with(subject)
       end
 
-      it 'executes status_condition' do
+      it 'executes status_condition on after_turn' do
+        allow(status_condition).to receive(:before_turn).with(subject)
         expect(status_condition).to receive(:after_turn).with(subject)
+        expect(battle).to receive(:remove_fainted)
+        subject.execute
+      end
+
+      it 'executes status_condition on before_turn' do
+        allow(status_condition).to receive(:after_turn).with(subject)
+        expect(status_condition).to receive(:before_turn).with(subject)
         expect(battle).to receive(:remove_fainted)
         subject.execute
       end

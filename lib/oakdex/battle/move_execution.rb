@@ -35,6 +35,7 @@ module Oakdex
           execute_damage
           execute_stat_modifiers
           execute_status_conditions
+          execute_status_condition_callbacks
         else
           add_move_does_not_hit_log
         end
@@ -47,6 +48,13 @@ module Oakdex
       def prevented_by_status_condition?
         pokemon.status_conditions.reduce(false) do |res, condition|
           res || condition.prevents_move?(self)
+        end
+      end
+
+      def execute_status_condition_callbacks
+        return if move.power.zero?
+        target.status_conditions.each do |c|
+          c.after_received_damage(self)
         end
       end
 

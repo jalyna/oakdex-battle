@@ -15,20 +15,22 @@ module Oakdex
       end
 
       def execute
+        execute_status_conditions(:before_turn)
+
         ordered_actions.each do |action|
           next unless valid_target?(action)
           next if action.pokemon && action.pokemon.current_hp.zero?
           action.execute(self)
         end
 
-        status_conditions_after_turn
+        execute_status_conditions(:after_turn)
       end
 
       private
 
-      def status_conditions_after_turn
+      def execute_status_conditions(method)
         status_conditions.each do |status_condition|
-          status_condition.after_turn(self)
+          status_condition.public_send(method, self)
         end
         battle.remove_fainted
       end

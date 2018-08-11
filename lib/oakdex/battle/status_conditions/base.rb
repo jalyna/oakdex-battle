@@ -9,11 +9,15 @@ module Oakdex
           @pokemon = pokemon
         end
 
+        def before_turn(turn); end
+
         def after_turn(turn); end
 
         def after_fainted(battle); end
 
         def after_switched_out(battle); end
+
+        def after_received_damage(move_execution); end
 
         def stat_modifier(_stat)
           1.0

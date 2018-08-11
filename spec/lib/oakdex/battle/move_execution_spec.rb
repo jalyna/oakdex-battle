@@ -22,6 +22,7 @@ describe Oakdex::Battle::MoveExecution do
   end
   let(:target) do
     double(:target, evasion: target_evasion,
+                    status_conditions: [],
                     trainer: trainer2, name: 'defender')
   end
   let(:trainer1) { double(:trainer, name: 'test') }
@@ -118,6 +119,15 @@ describe Oakdex::Battle::MoveExecution do
       subject.execute
     end
 
+    it 'executes status condition after_received_damage' do
+      status_condition = double(:status_condition)
+      allow(target).to receive(:status_conditions)
+        .and_return([status_condition])
+      expect(status_condition).to receive(:after_received_damage)
+        .with(subject)
+      subject.execute
+    end
+
     context 'status condition' do
       let(:condition) { double(:condition) }
       let(:prevents) { true }
@@ -160,6 +170,15 @@ describe Oakdex::Battle::MoveExecution do
         expect(battle).not_to receive(:add_to_log)
           .with('received_damage', trainer2.name, target.name,
                 move1.name, damage_points)
+        subject.execute
+      end
+
+      it 'does not execute status condition after_received_damage' do
+        status_condition = double(:status_condition)
+        allow(target).to receive(:status_conditions)
+          .and_return([status_condition])
+        expect(status_condition).not_to receive(:after_received_damage)
+          .with(subject)
         subject.execute
       end
 
