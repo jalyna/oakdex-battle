@@ -6,7 +6,8 @@ describe 'Battle simulation' do
                                               moves: [
                                                 ['Nuzzle', 30, 30],
                                                 ['Blue Flare', 10, 10],
-                                                ['Ice Fang', 10, 10]
+                                                ['Ice Fang', 10, 10],
+                                                ['Hypnosis', 10, 10]
                                               ])
   end
   let(:pokemon2) do

@@ -90,12 +90,6 @@ battle = Oakdex::Battle.new([trainer1], [trainer2], pokemon_per_side: 3)
 battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4])
 ```
 
-## TODOs for 0.0.1
-
-- [x] Implement different target types
-- [x] Setup basic stat modifier changing moves
-- [ ] Setup basic conditions with moves
-
 ## Contributing
 
 I would be happy if you want to add your contribution to the project. In order to contribute, you just have to fork this repository.
