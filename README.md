@@ -94,6 +94,8 @@ battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4])
 
 I would be happy if you want to add your contribution to the project. In order to contribute, you just have to fork this repository.
 
+Please respect the [Code of Conduct](//github.com/jalyna/oakdex-battle/blob/master/CODE_OF_CONDUCT.md).
+
 ## License
 
 MIT License. See the included MIT-LICENSE file.
