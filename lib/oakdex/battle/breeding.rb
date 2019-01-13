@@ -53,6 +53,7 @@ module Oakdex
 
       def parent_moves
         @female.moves.map(&:name) + @male.moves.map(&:name)
+      end
 
       def egg_moves
         child_species.learnset
