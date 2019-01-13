@@ -1,6 +1,6 @@
 module Oakdex
   class Battle
-    # Pokémon Breeding
+    # Pokemon Breeding
     class Breeding
       class << self
         def compatible?(pokemon1, pokemon2)
@@ -22,7 +22,7 @@ module Oakdex
       end
 
       def compatible?
-        (opposite_gender? && same_egg_group? && !any_undiscovered?) || 
+        (opposite_gender? && same_egg_group? && !any_undiscovered?) ||
           (exactly_one_is_ditto? && non_ditto_is_discovered?)
       end
 
@@ -44,10 +44,11 @@ module Oakdex
       end
 
       def lowest_in_evolutionary_chain(species)
-        # TODO take incenses into account
+        # TODO: take incenses into account
         lowest_species = species
         while lowest_species.evolution_from
-          lowest_species = Oakdex::Pokedex::Pokemon.find!(lowest_species.evolution_from)
+          lowest_species = Oakdex::Pokedex::Pokemon
+            .find!(lowest_species.evolution_from)
         end
         lowest_species
       end
@@ -78,7 +79,8 @@ module Oakdex
       end
 
       def any_undiscovered?
-        (@female.species.egg_groups + @male.species.egg_groups).include?('Undiscovered')
+        (@female.species.egg_groups + @male.species.egg_groups)
+          .include?('Undiscovered')
       end
 
       def same_species?

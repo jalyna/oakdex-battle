@@ -6,12 +6,12 @@ describe Oakdex::Battle::Breeding do
 
   describe '.compatible?' do
     it { expect(described_class).to be_compatible(pokemon1, pokemon2) }
-  
+
     context 'both dittos' do
       let(:pokemon2) { Oakdex::Battle::Pokemon.create('Ditto', level: 20) }
       it { expect(described_class).not_to be_compatible(pokemon1, pokemon2) }
     end
-  
+
     context 'neutral' do
       let(:pokemon2) { Oakdex::Battle::Pokemon.create('Rotom', level: 20) }
       it { expect(described_class).to be_compatible(pokemon1, pokemon2) }
@@ -59,7 +59,7 @@ describe Oakdex::Battle::Breeding do
       let(:pokemon1) { Oakdex::Battle::Pokemon.create('Pikachu', level: 20, gender: 'female') }
       let(:pokemon2) { Oakdex::Battle::Pokemon.create('Pikachu', level: 20, gender: 'male') }
       it { expect(described_class).to be_compatible(pokemon1, pokemon2) }
-    
+
       context 'both female' do
         let(:pokemon1) { Oakdex::Battle::Pokemon.create('Pikachu', level: 20, gender: 'female') }
         let(:pokemon2) { Oakdex::Battle::Pokemon.create('Pikachu', level: 20, gender: 'female') }
@@ -95,7 +95,7 @@ describe Oakdex::Battle::Breeding do
     it { expect(child.level).to eq(1) }
     it('has species from non ditto') { expect(child.name).to eq('Pichu') }
     it { expect(child.moves.map(&:name)).to match_array(['Thunder Shock', 'Charm']) }
-  
+
     context 'same egg group' do
       let(:pokemon1) { Oakdex::Battle::Pokemon.create('Pachirisu', level: 10, gender: 'female') }
       it('has species from female') { expect(child.name).to eq('Pachirisu') }
