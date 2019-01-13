@@ -34,13 +34,31 @@ module Oakdex
 
       def child
         return unless compatible?
-        Oakdex::Battle::Pokemon.create(child_species.name, level: 1)
+        Oakdex::Battle::Pokemon.create(child_species.name,
+                                       level: 1,
+                                       additional_moves: enabled_egg_moves
+                                      )
       end
 
       private
 
       def child_species
-        lowest_in_evolutionary_chain(non_ditto_or_female.species)
+        @child_species ||=
+          lowest_in_evolutionary_chain(non_ditto_or_female.species)
+      end
+
+      def enabled_egg_moves
+        egg_moves & parent_moves
+      end
+
+      def parent_moves
+        @female.moves.map(&:name) + @male.moves.map(&:name)
+      end
+
+      def egg_moves
+        child_species.learnset
+          .map { |l| l['egg_move'] ? l['move'] : nil }
+          .compact
       end
 
       def lowest_in_evolutionary_chain(species)

@@ -122,6 +122,71 @@ describe Oakdex::Battle::Pokemon do
       expect(described_class.create(species_name, options)).to eq(pokemon)
     end
 
+    context 'additional moves given' do
+      let(:options) do
+        {
+          level: 10,
+          additional_moves: %w[
+            MyMove0
+            MyMove1
+            MyMove2
+            MyMove3
+          ]
+        }
+      end
+      let(:move_type2) { double(:move_type2, pp: 44) }
+      let(:move2) { double(:move2) }
+      let(:move_type3) { double(:move_type3, pp: 43) }
+      let(:move3) { double(:move3) }
+      let(:move_type4) { double(:move_type4, pp: 42) }
+      let(:move4) { double(:move4) }
+      let(:move_type5) { double(:move_type5, pp: 41) }
+      let(:move5) { double(:move5) }
+
+      before do
+        allow(Oakdex::Pokedex::Move).to receive(:find!)
+          .with('MyMove0').and_return(move_type2)
+        allow(Oakdex::Battle::Move).to receive(:new)
+          .with(move_type2, move_type2.pp, move_type2.pp).and_return(move2)
+
+        allow(Oakdex::Pokedex::Move).to receive(:find!)
+          .with('MyMove1').and_return(move_type3)
+        allow(Oakdex::Battle::Move).to receive(:new)
+          .with(move_type3, move_type3.pp, move_type3.pp).and_return(move3)
+
+        allow(Oakdex::Pokedex::Move).to receive(:find!)
+          .with('MyMove2').and_return(move_type4)
+        allow(Oakdex::Battle::Move).to receive(:new)
+          .with(move_type4, move_type4.pp, move_type4.pp).and_return(move4)
+
+        allow(Oakdex::Pokedex::Move).to receive(:find!)
+          .with('MyMove3').and_return(move_type5)
+        allow(Oakdex::Battle::Move).to receive(:new)
+          .with(move_type5, move_type5.pp, move_type5.pp).and_return(move5)
+      end
+
+      let(:attributes) do
+        {
+          exp: exp,
+          gender: gender,
+          ability: ability,
+          nature: nature,
+          hp: hp,
+          iv: iv,
+          ev: ev,
+          moves: [move, move2, move3, move4]
+        }
+      end
+
+      it 'creates pokemon with auto-generated attributes plus additional moves' do
+        expect(described_class).to receive(:new).with(
+          species,
+          attributes
+        ).and_return(pokemon)
+        expect(described_class.create(species_name, options)).to eq(pokemon)
+      end
+    end
+
     context 'data given' do
       let(:iv) do
         {
