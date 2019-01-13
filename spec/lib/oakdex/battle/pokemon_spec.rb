@@ -63,8 +63,16 @@ describe Oakdex::Battle::Pokemon do
     it { expect(subject.name).to eq('Pikachu') }
   end
 
+  describe '#species' do
+    it { expect(subject.species).to eq(species) }
+  end
+
   describe '#moves' do
     it { expect(subject.moves).to eq([move]) }
+  end
+
+  describe '#gender' do
+    it { expect(subject.gender).to eq('female') }
   end
 
   describe '#current_hp' do

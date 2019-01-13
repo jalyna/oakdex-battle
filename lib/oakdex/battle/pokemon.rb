@@ -24,6 +24,7 @@ module Oakdex
       def_delegators :@species, :types
 
       attr_accessor :trainer
+      attr_reader :species
 
       def self.create(species_name, options = {})
         species = Oakdex::Pokedex::Pokemon.find!(species_name)
@@ -39,6 +40,10 @@ module Oakdex
 
       def name
         @species.names['en']
+      end
+
+      def gender
+        @attributes[:gender]
       end
 
       def moves

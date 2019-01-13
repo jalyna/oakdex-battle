@@ -90,6 +90,19 @@ battle = Oakdex::Battle.new([trainer1], [trainer2], pokemon_per_side: 3)
 battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4])
 ```
 
+
+### Breeding
+
+```ruby
+pok1 = Oakdex::Battle::Pokemon.create('Ditto', level: 20)
+pok2 = Oakdex::Battle::Pokemon.create('Pikachu', level: 20, gender: 'female')
+
+Oakdex::Battle::Breeding.compatible?(pok1, pok2) # => true
+Oakdex::Battle::Breeding.chance_in_percentage(pok1, pok2) # => 20
+Oakdex::Battle::Breeding.breed(pok1, pok2) #=> Oakdex::Battle::Pokemon Pichu
+```
+
+
 ## Contributing
 
 I would be happy if you want to add your contribution to the project. In order to contribute, you just have to fork this repository.
