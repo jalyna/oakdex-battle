@@ -31,10 +31,22 @@ module Oakdex
             )
           end
         else
-          available_moves.sample(4).map do |move_name|
-            move_type = Oakdex::Pokedex::Move.find!(move_name)
-            Move.new(move_type, move_type.pp, move_type.pp)
-          end
+          (generate_available_moves + additional_moves).take(4)
+        end
+      end
+
+      def generate_available_moves
+        available_moves.sample(4).map do |move_name|
+          move_type = Oakdex::Pokedex::Move.find!(move_name)
+          Move.new(move_type, move_type.pp, move_type.pp)
+        end
+      end
+
+      def additional_moves
+        return [] unless @options[:additional_moves]
+        @options[:additional_moves].map do |move_name|
+          move_type = Oakdex::Pokedex::Move.find!(move_name)
+          Move.new(move_type, move_type.pp, move_type.pp)
         end
       end
 

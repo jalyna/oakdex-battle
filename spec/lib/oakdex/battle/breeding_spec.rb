@@ -100,5 +100,25 @@ describe Oakdex::Battle::Breeding do
       let(:pokemon1) { Oakdex::Battle::Pokemon.create('Pachirisu', level: 10, gender: 'female') }
       it('has species from female') { expect(child.name).to eq('Pachirisu') }
     end
+
+    context 'parent with egg moves' do
+      let(:parent_moves) do
+        [
+          ['Reversal', 10, 10],
+          ['Wish', 10, 10]
+        ]
+      end
+      let(:pokemon1) { Oakdex::Battle::Pokemon.create('Ditto', level: 10) }
+      let(:pokemon2) { Oakdex::Battle::Pokemon.create('Pikachu', level: 20, gender: 'male', moves: parent_moves) }
+
+      it {
+        expect(child.moves.map(&:name)).to match_array([
+                                                         'Thunder Shock',
+                                                         'Charm',
+                                                         'Reversal',
+                                                         'Wish'
+                                                       ])
+      }
+    end
   end
 end
