@@ -10,6 +10,7 @@ require 'oakdex/battle/valid_action_service'
 require 'oakdex/battle/side'
 require 'oakdex/battle/in_battle_pokemon'
 require 'oakdex/battle/breeding'
+require 'oakdex/battle/experience_gain_calculator'
 
 module Oakdex
   # Represents battle, with has n turns and m sides

@@ -62,6 +62,37 @@ module Oakdex
         moves.select { |m| m.pp > 0 }
       end
 
+      def wild?
+        @attributes[:wild]
+      end
+
+      def original_trainer
+        @attributes[:original_trainer]
+      end
+
+      def item_id
+        @attributes[:item_id]
+      end
+
+      def amie
+        {
+          affection: 0,
+          fullness: 0,
+          enjoyment: 0
+        }.merge(@attributes[:amie] || {})
+      end
+
+      def amie_level(amie_stat)
+        5 - [255, 150, 100, 50, 1, 0].find_index do |treshold|
+          amie[amie_stat] >= treshold
+        end
+      end
+
+      def traded?
+        return false if trainer.nil? || original_trainer.nil?
+        trainer.name != original_trainer
+      end
+
       def change_hp_by(hp_change)
         @attributes[:hp] = if hp_change < 0
                              [@attributes[:hp] + hp_change, 0].max

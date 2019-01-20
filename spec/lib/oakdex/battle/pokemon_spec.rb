@@ -27,6 +27,7 @@ describe Oakdex::Battle::Pokemon do
       Oakdex::Pokedex::Move.find('Thunder Shock'), 30, 40
     )
   end
+  let(:additional_attributes) { {} }
   let(:attributes) do
     {
       exp: 100,
@@ -37,7 +38,7 @@ describe Oakdex::Battle::Pokemon do
       iv: iv,
       ev: ev,
       moves: [move]
-    }
+    }.merge(additional_attributes)
   end
   subject { described_class.new(species, attributes) }
 
@@ -344,6 +345,84 @@ describe Oakdex::Battle::Pokemon do
         expect(subject.public_send(field))
         .to eq(species.public_send(field))
       }
+    end
+  end
+
+  describe '#wild?' do
+    it { expect(subject).not_to be_wild }
+
+    context 'wild' do
+      let(:additional_attributes) { { wild: true } }
+      it { expect(subject).to be_wild }
+    end
+  end
+
+  describe '#original_trainer' do
+    it { expect(subject.original_trainer).to be_nil }
+
+    context 'original trainer given' do
+      let(:additional_attributes) { { original_trainer: 'Name of Trainer' } }
+      it { expect(subject.original_trainer).to eq('Name of Trainer') }
+    end
+  end
+
+  describe '#traded?' do
+    it { expect(subject).not_to be_traded }
+
+    context 'trainer given' do
+      let!(:trainer) { Oakdex::Battle::Trainer.new('Awesome Trainer', [subject]) }
+      it { expect(subject).not_to be_traded }
+
+      context 'original trainer given' do
+        let(:additional_attributes) { { original_trainer: 'Name of Trainer' } }
+        it { expect(subject).to be_traded }
+
+        context 'ot is same as trainer' do
+          let(:additional_attributes) { { original_trainer: 'Awesome Trainer' } }
+          it { expect(subject).not_to be_traded }
+        end
+      end
+    end
+  end
+
+  describe '#item_id' do
+    it { expect(subject.item_id).to be_nil }
+
+    context 'item given' do
+      let(:additional_attributes) { { item_id: 'Name of Item' } }
+      it { expect(subject.item_id).to eq('Name of Item') }
+    end
+  end
+
+  describe '#amie' do
+    it { expect(subject.amie).to eq({
+      affection: 0,
+      fullness: 0,
+      enjoyment: 0
+    }) }
+
+    context 'amie given' do
+      let(:additional_attributes) { { amie: {
+        affection: 1,
+        fullness: 2,
+        enjoyment: 3
+      } } }
+      it { expect(subject.amie).to eq({
+        affection: 1,
+        fullness: 2,
+        enjoyment: 3
+      }) }
+    end
+  end
+
+  describe '#amie_level' do
+    it { expect(subject.amie_level(:affection)).to eq(0) }
+
+    context 'amie given' do
+      let(:additional_attributes) { { amie: {
+        affection: 201
+      } } }
+      it { expect(subject.amie_level(:affection)).to eq(4) }
     end
   end
 end

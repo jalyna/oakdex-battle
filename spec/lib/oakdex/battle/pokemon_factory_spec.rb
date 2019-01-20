@@ -3,7 +3,19 @@ require 'spec_helper'
 describe Oakdex::Battle::Pokemon do
   describe '.create' do
     let(:species_name) { 'Bulbasaur' }
-    let(:options) { { level: 10 } }
+    let(:options) do
+      { 
+        level: 10,
+        wild: true,
+        original_trainer: 'Name of Trainer',
+        item_id: 'Name of Item',
+        amie: {
+          affection: 1,
+          fullness: 2,
+          enjoyment: 3
+        }
+      }
+    end
     let(:exp) { 50 }
     let(:hp) { double(:hp) }
     let(:pokemon) { double(:pokemon) }
@@ -80,7 +92,15 @@ describe Oakdex::Battle::Pokemon do
         hp: hp,
         iv: iv,
         ev: ev,
-        moves: [move]
+        moves: [move],
+        wild: true,
+        original_trainer: 'Name of Trainer',
+        item_id: 'Name of Item',
+        amie: {
+          affection: 1,
+          fullness: 2,
+          enjoyment: 3
+        }
       }
     end
 
@@ -123,16 +143,15 @@ describe Oakdex::Battle::Pokemon do
     end
 
     context 'additional moves given' do
-      let(:options) do
-        {
-          level: 10,
+      let(:new_options) do
+        options.merge({
           additional_moves: %w[
             MyMove0
             MyMove1
             MyMove2
             MyMove3
           ]
-        }
+        })
       end
       let(:move_type2) { double(:move_type2, pp: 44) }
       let(:move2) { double(:move2) }
@@ -165,25 +184,18 @@ describe Oakdex::Battle::Pokemon do
           .with(move_type5, move_type5.pp, move_type5.pp).and_return(move5)
       end
 
-      let(:attributes) do
-        {
-          exp: exp,
-          gender: gender,
-          ability: ability,
-          nature: nature,
-          hp: hp,
-          iv: iv,
-          ev: ev,
+      let(:new_attributes) do
+        attributes.merge({
           moves: [move, move2, move3, move4]
-        }
+        })
       end
 
       it 'creates pokemon with auto-generated attributes plus additional moves' do
         expect(described_class).to receive(:new).with(
           species,
-          attributes
+          new_attributes
         ).and_return(pokemon)
-        expect(described_class.create(species_name, options)).to eq(pokemon)
+        expect(described_class.create(species_name, new_options)).to eq(pokemon)
       end
     end
 
@@ -211,8 +223,8 @@ describe Oakdex::Battle::Pokemon do
       let(:gender) { 'male' }
       let(:hp) { 17 }
 
-      let(:options) do
-        {
+      let(:new_options) do
+        options.merge({
           exp: exp,
           gender: 'male',
           ability: 'Something',
@@ -223,7 +235,7 @@ describe Oakdex::Battle::Pokemon do
           moves: [
             ['MyMove', 20, 30]
           ]
-        }
+        })
       end
 
       before do
@@ -238,7 +250,7 @@ describe Oakdex::Battle::Pokemon do
           species,
           attributes
         ).and_return(pokemon)
-        expect(described_class.create(species_name, options)).to eq(pokemon)
+        expect(described_class.create(species_name, new_options)).to eq(pokemon)
       end
     end
   end

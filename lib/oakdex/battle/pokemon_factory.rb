@@ -2,14 +2,21 @@ module Oakdex
   class Battle
     # Creates Pokemon instance and prefills attributes
     class PokemonFactory
-      ATTRIBUTES = %i[exp gender ability nature hp iv ev moves]
+      REQUIRED_ATTRIBUTES = %i[exp gender ability nature hp iv ev moves]
+      OPTIONAL_ATTRIBUTES = %i[
+        original_trainer
+        wild
+        item_id
+        amie
+      ]
 
       class << self
         def create(species, options = {})
           factory = new(species, options)
-          attributes = Hash[ATTRIBUTES.map do |attr|
-            [attr, factory.send(attr)]
-          end]
+          attributes = Hash[(REQUIRED_ATTRIBUTES +
+            OPTIONAL_ATTRIBUTES).map do |attr|
+                              [attr, factory.send(attr)]
+                            end]
           Pokemon.new(species, attributes)
         end
       end
@@ -20,6 +27,22 @@ module Oakdex
       end
 
       private
+
+      def original_trainer
+        @options[:original_trainer]
+      end
+
+      def wild
+        @options[:wild]
+      end
+
+      def item_id
+        @options[:item_id]
+      end
+
+      def amie
+        @options[:amie]
+      end
 
       def moves
         if @options[:moves]
