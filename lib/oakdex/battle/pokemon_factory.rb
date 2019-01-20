@@ -15,8 +15,8 @@ module Oakdex
           factory = new(species, options)
           attributes = Hash[(REQUIRED_ATTRIBUTES +
             OPTIONAL_ATTRIBUTES).map do |attr|
-            [attr, factory.send(attr)]
-          end]
+                              [attr, factory.send(attr)]
+                            end]
           Pokemon.new(species, attributes)
         end
       end
