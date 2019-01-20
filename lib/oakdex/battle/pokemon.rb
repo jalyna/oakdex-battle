@@ -83,18 +83,8 @@ module Oakdex
       end
 
       def amie_level(amie_stat)
-        if amie[amie_stat] >= 255
-          5
-        elsif amie[amie_stat] >= 150
-          4
-        elsif amie[amie_stat] >= 100
-          3
-        elsif amie[amie_stat] >= 50
-          2
-        elsif amie[amie_stat] >= 1
-          1
-        else
-          0
+        5 - [255, 150, 100, 50, 1, 0].find_index do |treshold|
+          amie[amie_stat] >= treshold
         end
       end
 

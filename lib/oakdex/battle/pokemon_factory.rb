@@ -13,7 +13,8 @@ module Oakdex
       class << self
         def create(species, options = {})
           factory = new(species, options)
-          attributes = Hash[(REQUIRED_ATTRIBUTES + OPTIONAL_ATTRIBUTES).map do |attr|
+          attributes = Hash[(REQUIRED_ATTRIBUTES +
+            OPTIONAL_ATTRIBUTES).map do |attr|
             [attr, factory.send(attr)]
           end]
           Pokemon.new(species, attributes)
