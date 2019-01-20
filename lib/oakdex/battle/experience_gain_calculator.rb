@@ -24,10 +24,7 @@ module Oakdex
       end
 
       def scaled_formula
-        (
-          ((a * b * l) / (5 * s))
-          * ((2 * l + 10)**2.5 / (l + lp + 10)**2.5) + 1
-        ) * t * e * p
+        (((a * b * l) / (5 * s)) * ((2 * l + 10)**2.5 / (l + lp + 10)**2.5) + 1) * t * e * p
       end
 
       def flat_formula
