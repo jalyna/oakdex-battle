@@ -102,6 +102,17 @@ Oakdex::Battle::Breeding.chance_in_percentage(pok1, pok2) # => 20
 Oakdex::Battle::Breeding.breed(pok1, pok2) #=> Oakdex::Battle::Pokemon Pichu
 ```
 
+### Gain EXP
+
+```ruby
+fainted = Oakdex::Battle::Pokemon.create('Pikachu', level: 10)
+winner = Oakdex::Battle::Pokemon.create('Bulbasaur', level: 12)
+
+Oakdex::Battle::ExperienceGainCalculator.calculate(fainted, winner) # => 269
+Oakdex::Battle::ExperienceGainCalculator.calculate(fainted, winner, flat: true) # => 225
+Oakdex::Battle::ExperienceGainCalculator.calculate(fainted, winner, winner_using_exp_share: true) # => 135
+```
+
 
 ## Contributing
 
