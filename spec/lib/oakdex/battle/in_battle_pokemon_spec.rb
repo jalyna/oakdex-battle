@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe Oakdex::Battle::InBattlePokemon do
+  let(:primary_status_condition) { nil }
   let(:pokemon) do
     double(:pokemon, {
       hp: 17,
@@ -8,7 +9,8 @@ describe Oakdex::Battle::InBattlePokemon do
       def: 7,
       sp_atk: 9,
       sp_def: 8,
-      speed: 12
+      speed: 12,
+      primary_status_condition: primary_status_condition
     })
   end
 
@@ -91,8 +93,6 @@ describe Oakdex::Battle::InBattlePokemon do
     end
   end
 
-
-
   describe '#reset_stats' do
     let(:initial_stat) { 100 }
     before do
@@ -169,6 +169,19 @@ describe Oakdex::Battle::InBattlePokemon do
     end
   end
 
+  context 'pokemon has primary status condition' do
+    let(:primary_status_condition) { 'poison' }
+    let(:condition_class) { ::Oakdex::Battle::StatusConditions::Poison }
+    let(:status_condition) { double(:status_condition) }
+
+    before do
+      allow(condition_class).to receive(:new).and_return(status_condition)
+      expect(pokemon).to receive(:primary_status_condition=).with('poison')
+    end
+
+    it { expect(subject.status_conditions).to eq([status_condition]) }
+  end
+
   describe '#add_status_condition' do
     let(:condition) { 'poison' }
     let(:condition_class) { ::Oakdex::Battle::StatusConditions::Poison }
@@ -177,6 +190,7 @@ describe Oakdex::Battle::InBattlePokemon do
     before do
       allow(condition_class).to receive(:new)
         .with(subject).and_return(status_condition)
+      expect(pokemon).to receive(:primary_status_condition=).with(condition)
       subject.add_status_condition(condition)
     end
 
@@ -223,11 +237,13 @@ describe Oakdex::Battle::InBattlePokemon do
     before do
       allow(condition_class).to receive(:new)
         .with(subject).and_return(status_condition)
+      allow(pokemon).to receive(:primary_status_condition=).with(condition)
       subject.add_status_condition(condition)
     end
 
     it 'removes condition' do
       expect(subject.status_conditions).to eq([status_condition])
+      expect(pokemon).to receive(:primary_status_condition=).with(nil)
       subject.remove_status_condition(status_condition)
       expect(subject.status_conditions).to be_empty
     end

@@ -67,6 +67,9 @@ module Oakdex
       def initialize(pokemon, options = {})
         @pokemon = pokemon
         @status_conditions = options[:status_conditions] || []
+        if @pokemon.primary_status_condition
+          add_status_condition(@pokemon.primary_status_condition)
+        end
         reset_stats
       end
 
@@ -85,10 +88,12 @@ module Oakdex
 
       def add_status_condition(condition_name)
         @status_conditions << status_condition(condition_name)
+        @pokemon.primary_status_condition = condition_name
       end
 
       def remove_status_condition(condition)
         @status_conditions = @status_conditions.reject { |s| s == condition }
+        @pokemon.primary_status_condition = nil if @status_conditions.empty?
       end
 
       def reset_stats
