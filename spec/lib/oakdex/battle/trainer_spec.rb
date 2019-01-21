@@ -4,15 +4,15 @@ describe Oakdex::Battle::Trainer do
   let(:name) { double(:name) }
   let(:current_hp1) { 10 }
   let(:current_hp2) { 12 }
+  let(:pok1) { double(:pok1, "trainer=": nil) }
+  let(:pok2) { double(:pok2, "trainer=": nil) }
   let(:pokemon1) do
     double(:pokemon,
-           "trainer=": nil,
            name: 'Pok1',
            current_hp: current_hp1)
   end
   let(:pokemon2) do
     double(:pokemon,
-           "trainer=": nil,
            current_hp: current_hp2)
   end
   let(:team) { [pokemon1, pokemon2] }
@@ -24,7 +24,13 @@ describe Oakdex::Battle::Trainer do
                                pokemon: pokemon1,
                                battle: battle)
   end
-  subject { described_class.new(name, team) }
+
+  before do
+    allow(Oakdex::Battle::InBattlePokemon).to receive(:new).with(pok1).and_return(pokemon1)
+    allow(Oakdex::Battle::InBattlePokemon).to receive(:new).with(pok2).and_return(pokemon2)
+  end
+
+  subject { described_class.new(name, [pok1, pok2]) }
 
   describe '#name' do
     it { expect(subject.name).to eq(name) }

@@ -60,7 +60,7 @@ module Oakdex
                      :name, :gender, :moves, :current_hp, :wild?,
                      :item_id, :amie, :amie_level, :traded?,
                      :moves_with_pp, :change_hp_by, :change_pp_by,
-                     :level
+                     :level, :fainted?
 
       attr_reader :status_conditions
 
