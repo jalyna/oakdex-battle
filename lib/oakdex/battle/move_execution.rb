@@ -104,7 +104,7 @@ module Oakdex
       end
 
       def random_stat
-        (Pokemon::BATTLE_STATS + Pokemon::OTHER_STATS).sample
+        (Oakdex::Pokemon::BATTLE_STATS + InBattlePokemon::OTHER_STATS).sample
       end
 
       def add_log(*args)
