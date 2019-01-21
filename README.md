@@ -11,8 +11,8 @@ Based on [oakdex-pokedex](https://github.com/jalyna/oakdex-pokedex).
 ```ruby
 require 'oakdex/battle'
 
-pok1 = Oakdex::Battle::Pokemon.create('Pikachu', level: 10)
-pok2 = Oakdex::Battle::Pokemon.create('Bulbasaur', {
+pok1 = Oakdex::Pokemon.create('Pikachu', level: 10)
+pok2 = Oakdex::Pokemon.create('Bulbasaur', {
   exp: 120,
   gender: 'female',
   ability: 'Soundproof',
@@ -75,8 +75,8 @@ battle.winner # => trainer1
 ### Other Battle types
 
 ```ruby
-pok3 = Oakdex::Battle::Pokemon.create('Altaria', level: 20)
-pok4 = Oakdex::Battle::Pokemon.create('Elekid', level: 14)
+pok3 = Oakdex::Pokemon.create('Altaria', level: 20)
+pok4 = Oakdex::Pokemon.create('Elekid', level: 14)
 trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1, pok3, pok9])
 trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2, pok4, pok10])
 trainer3 = Oakdex::Battle::Trainer.new('Brock', [pok5, pok6])
@@ -89,30 +89,6 @@ battle = Oakdex::Battle.new([trainer1], [trainer2], pokemon_per_side: 3)
 # 2 vs. 2 (1 pokemon each trainer)
 battle = Oakdex::Battle.new([trainer1, trainer3], [trainer2, trainer4])
 ```
-
-
-### Breeding
-
-```ruby
-pok1 = Oakdex::Battle::Pokemon.create('Ditto', level: 20)
-pok2 = Oakdex::Battle::Pokemon.create('Pikachu', level: 20, gender: 'female')
-
-Oakdex::Battle::Breeding.compatible?(pok1, pok2) # => true
-Oakdex::Battle::Breeding.chance_in_percentage(pok1, pok2) # => 20
-Oakdex::Battle::Breeding.breed(pok1, pok2) #=> Oakdex::Battle::Pokemon Pichu
-```
-
-### Gain EXP
-
-```ruby
-fainted = Oakdex::Battle::Pokemon.create('Pikachu', level: 10)
-winner = Oakdex::Battle::Pokemon.create('Bulbasaur', level: 12)
-
-Oakdex::Battle::ExperienceGainCalculator.calculate(fainted, winner) # => 269
-Oakdex::Battle::ExperienceGainCalculator.calculate(fainted, winner, flat: true) # => 225
-Oakdex::Battle::ExperienceGainCalculator.calculate(fainted, winner, winner_using_exp_share: true) # => 135
-```
-
 
 ## Contributing
 

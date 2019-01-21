@@ -5,7 +5,8 @@ describe Oakdex::Battle::StatusConditions::Burn do
   let(:current_hp) { 32 }
   let(:pokemon) do
     double(:pokemon, hp: 32, trainer: trainer, name: 'Pokemon',
-                     current_hp: current_hp)
+                     current_hp: current_hp,
+                     fainted?: current_hp.zero?)
   end
   let(:battle) { double(:battle) }
   let(:move_category) { 'special' }

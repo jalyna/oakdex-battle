@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe 'Battle simulation' do
   let(:pokemon1) do
-    Oakdex::Battle::Pokemon.create('Pikachu', level: 5,
+    Oakdex::Pokemon.create('Pikachu', level: 5,
                                               moves: [
                                                 ['Nuzzle', 30, 30],
                                                 ['Blue Flare', 10, 10],
@@ -11,7 +11,7 @@ describe 'Battle simulation' do
                                               ])
   end
   let(:pokemon2) do
-    Oakdex::Battle::Pokemon.create('Bulbasaur',
+    Oakdex::Pokemon.create('Bulbasaur',
                                    level: 5,
                                    moves: [
                                      ['Aromatherapy', 30, 30],
@@ -22,22 +22,22 @@ describe 'Battle simulation' do
                                   )
   end
   let(:pokemon3) do
-    Oakdex::Battle::Pokemon.create('Squirtle', level: 5)
+    Oakdex::Pokemon.create('Squirtle', level: 5)
   end
   let(:pokemon4) do
-    Oakdex::Battle::Pokemon.create('Pidgey', level: 4)
+    Oakdex::Pokemon.create('Pidgey', level: 4)
   end
   let(:pokemon5) do
-    Oakdex::Battle::Pokemon.create('Charmander', level: 3)
+    Oakdex::Pokemon.create('Charmander', level: 3)
   end
   let(:pokemon6) do
-    Oakdex::Battle::Pokemon.create('Caterpie', level: 3)
+    Oakdex::Pokemon.create('Caterpie', level: 3)
   end
   let(:pokemon7) do
-    Oakdex::Battle::Pokemon.create('Chikorita', level: 3)
+    Oakdex::Pokemon.create('Chikorita', level: 3)
   end
   let(:pokemon8) do
-    Oakdex::Battle::Pokemon.create('Spearow', level: 3)
+    Oakdex::Pokemon.create('Spearow', level: 3)
   end
   let(:trainer1) do
     Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2])

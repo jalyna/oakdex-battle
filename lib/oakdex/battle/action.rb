@@ -76,12 +76,12 @@ module Oakdex
       end
 
       def pokemon_by_position
-        trainer.in_battle_pokemon
+        trainer.active_in_battle_pokemon
           .find { |ibp| ibp.position == @attributes[:pokemon] }&.pokemon
       end
 
       def target_by_position(side, position)
-        side.in_battle_pokemon
+        side.active_in_battle_pokemon
           .find { |ibp| ibp.position == position }&.pokemon
       end
 

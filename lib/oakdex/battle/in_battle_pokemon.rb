@@ -1,158 +1,151 @@
 require 'forwardable'
+require 'oakdex/battle/status_conditions'
 
 module Oakdex
   class Battle
-    # Represents a pokemon that is in battle
+    # Represents detailed pokemon instance that is part of a Trainer's Team
     class InBattlePokemon
       extend Forwardable
 
-      def_delegators :@pokemon, :current_hp, :moves_with_pp
-      def_delegators :@side, :battle
+      OTHER_STATS = %i[accuracy evasion critical_hit]
+      ALL_STATS = Oakdex::Pokemon::BATTLE_STATS + OTHER_STATS
+      STATUS_CONDITIONS = {
+        'poison' => StatusConditions::Poison,
+        'burn' => StatusConditions::Burn,
+        'freeze' => StatusConditions::Freeze,
+        'paralysis' => StatusConditions::Paralysis,
+        'badly_poisoned' => StatusConditions::BadlyPoisoned,
+        'sleep' => StatusConditions::Sleep
+      }
 
-      attr_reader :pokemon, :position, :side
+      STAGE_MULTIPLIERS = {
+        -6 => Rational(2, 8),
+        -5 => Rational(2, 7),
+        -4 => Rational(2, 6),
+        -3 => Rational(2, 5),
+        -2 => Rational(2, 4),
+        -1 => Rational(2, 3),
+        0 => Rational(2, 2),
+        1 => Rational(3, 2),
+        2 => Rational(4, 2),
+        3 => Rational(5, 2),
+        4 => Rational(6, 2),
+        5 => Rational(7, 2),
+        6 => Rational(8, 2)
+      }
 
-      def initialize(pokemon, side, position = 0)
+      STAGE_MULTIPLIERS_CRITICAL_HIT = {
+        0 => Rational(1, 24),
+        1 => Rational(1, 8),
+        2 => Rational(1, 2),
+        3 => Rational(1, 1)
+      }
+
+      STAGE_MULTIPLIERS_ACC_EVA = {
+        -6 => Rational(3, 9),
+        -5 => Rational(3, 8),
+        -4 => Rational(3, 7),
+        -3 => Rational(3, 6),
+        -2 => Rational(3, 5),
+        -1 => Rational(3, 4),
+        0 => Rational(3, 3),
+        1 => Rational(4, 3),
+        2 => Rational(5, 3),
+        3 => Rational(6, 3),
+        4 => Rational(7, 3),
+        5 => Rational(8, 3),
+        6 => Rational(9, 3)
+      }
+
+      def_delegators :@pokemon, :types, :trainer, :trainer=,
+                     :name, :moves, :moves_with_pp, :change_hp_by,
+                     :change_pp_by, :level, :fainted?
+
+      attr_reader :status_conditions
+
+      def initialize(pokemon, options = {})
         @pokemon = pokemon
-        @side = side
-        @position = position
+        @status_conditions = options[:status_conditions] || []
+        if @pokemon.primary_status_condition
+          add_status_condition(@pokemon.primary_status_condition)
+        end
+        reset_stats
       end
 
-      def fainted?
-        current_hp.zero?
+      def change_stat_by(stat, change_by)
+        modifiers = stage_multipliers(stat)
+        stat_before = @stat_modifiers[stat]
+        min_value = modifiers.keys.first
+        max_value = modifiers.keys.last
+        @stat_modifiers[stat] = if change_by < 0
+                                  [stat_before + change_by, min_value].max
+                                else
+                                  [stat_before + change_by, max_value].min
+                                end
+        stat_before != @stat_modifiers[stat]
       end
 
-      def action_added?
-        actions.any? { |a| a.pokemon == pokemon }
+      def add_status_condition(condition_name)
+        @status_conditions << status_condition(condition_name)
+        @pokemon.primary_status_condition = condition_name
       end
 
-      def valid_move_actions
-        return [] if action_added?
-        moves = moves_with_pp
-        moves = [struggle_move] if moves_with_pp.empty?
-        moves.flat_map do |move|
-          targets_in_battle(move).map do |target|
-            {
-              action: 'move',
-              pokemon: pokemon,
-              move: move,
-              target: target
-            }
-          end
+      def remove_status_condition(condition)
+        @status_conditions = @status_conditions.reject { |s| s == condition }
+        @pokemon.primary_status_condition = nil if @status_conditions.empty?
+      end
+
+      def reset_stats
+        @stat_modifiers = (ALL_STATS - %i[hp]).map do |stat|
+          [stat, 0]
+        end.to_h
+      end
+
+      def accuracy
+        stage(:accuracy)
+      end
+
+      def evasion
+        stage(:evasion)
+      end
+
+      def critical_hit_prob
+        stage(:critical_hit)
+      end
+
+      Oakdex::Pokemon::BATTLE_STATS.each do |stat|
+        define_method stat do
+          (@pokemon.public_send(stat) * stage(stat) *
+            status_condition_modifier(stat)).to_i
         end
       end
 
       private
 
-      def targets_in_battle(move)
-        available_targets(move).map do |targets|
-          if targets.last.is_a?(Array)
-            targets if targets_in_battle?(targets)
-          elsif target_in_battle?(targets)
-            targets
-          end
-        end.compact.reject(&:empty?)
-      end
-
-      def targets_in_battle?(targets)
-        targets.any? { |target| target[0].pokemon_in_battle?(target[1]) }
-      end
-
-      def target_in_battle?(target)
-        target[0].pokemon_in_battle?(target[1]) ||
-          (!target[0].pokemon_left? && target[1] == 0)
-      end
-
-      def struggle_move
-        @struggle_move ||= begin
-          move_type = Oakdex::Pokedex::Move.find('Struggle')
-          Oakdex::Battle::Move.new(move_type, move_type.pp, move_type.pp)
+      def status_condition_modifier(stat)
+        status_conditions.reduce(1.0) do |modifier, condition|
+          condition.stat_modifier(stat) * modifier
         end
       end
 
-      def available_targets(move)
-        with_target(move) || multiple_targets_adjacent(move) ||
-          multiple_targets(move) || []
+      def status_condition(condition_name)
+        STATUS_CONDITIONS[condition_name].new(self)
       end
 
-      def multiple_targets(move)
-        case move.target
-        when 'all_users' then [all_users]
-        when 'all_except_user' then [all_targets - [self_target]]
-        when 'all' then [all_targets]
-        when 'all_foes' then [all_foes]
+      def stage(stat)
+        multipliers = stage_multipliers(stat)
+        multipliers[@stat_modifiers[stat] || 0]
+      end
+
+      def stage_multipliers(stat)
+        case stat
+        when :evasion, :accuracy
+          STAGE_MULTIPLIERS_ACC_EVA
+        when :critical_hit
+          STAGE_MULTIPLIERS_CRITICAL_HIT
+        else
+          STAGE_MULTIPLIERS
         end
-      end
-
-      def multiple_targets_adjacent(move)
-        case move.target
-        when 'all_adjacent' then [adjacent]
-        when 'adjacent_foes_all' then [adjacent_foes]
-        end
-      end
-
-      def with_target(move)
-        case move.target
-        when 'user', 'user_and_random_adjacent_foe' then [self_target]
-        when 'target_adjacent_user_single' then adjacent_users
-        when 'target_adjacent_single' then adjacent
-        when 'target_user_or_adjacent_user'
-          [self_target] + adjacent_users
-        end
-      end
-
-      def all_targets
-        all_foes + all_users
-      end
-
-      def target_adjacent_single
-        adjacent_foes + adjacent_users
-      end
-
-      def adjacent
-        adjacent_foes + adjacent_users
-      end
-
-      def self_target
-        [@side, position]
-      end
-
-      def adjacent_foes
-        [
-          [other_side, position - 1],
-          [other_side, position],
-          [other_side, position + 1]
-        ].select { |t| t[1] >= 0 && t[1] < pokemon_per_side }
-      end
-
-      def adjacent_users
-        [
-          [@side, position - 1],
-          [@side, position + 1]
-        ].select { |t| t[1] >= 0 && t[1] < pokemon_per_side }
-      end
-
-      def all_users
-        pokemon_per_side.times.map { |i| [@side, i] }
-      end
-
-      def all_foes
-        pokemon_per_side.times.map { |i| [other_side, i] }
-      end
-
-      def pokemon_per_side
-        battle.pokemon_per_side
-      end
-
-      def other_side
-        other_sides.first
-      end
-
-      def other_sides
-        battle.sides - [@side]
-      end
-
-      def actions
-        battle.actions
       end
     end
   end

@@ -4,7 +4,7 @@ module Oakdex
       # Represents Poison status condition
       class Poison < NonVolatile
         def after_turn(turn)
-          return if pokemon.current_hp.zero?
+          return if pokemon.fainted?
           turn.battle.add_to_log('damage_by_poison',
                                  pokemon.trainer.name,
                                  pokemon.name, hp_by_turn)

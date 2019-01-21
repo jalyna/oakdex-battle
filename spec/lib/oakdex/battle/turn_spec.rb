@@ -3,20 +3,20 @@ require 'spec_helper'
 describe Oakdex::Battle::Turn do
   let(:speed1) { 20 }
   let(:speed2) { 10 }
-  let(:target1) { double(:target, current_hp: 6) }
-  let(:target2) { double(:target, current_hp: 6) }
+  let(:target1) { double(:target, current_hp: 6, fainted?: false) }
+  let(:target2) { double(:target, current_hp: 6, fainted?: false) }
   let(:target_list1) { [target1] }
   let(:target_list2) { [target2] }
-  let(:pokemon1) { double(:pokemon, current_hp: 6, speed: speed1) }
-  let(:pokemon2) { double(:pokemon, current_hp: 6, speed: speed2) }
+  let(:pokemon1) { double(:pokemon, current_hp: 6, speed: speed1, fainted?: false) }
+  let(:pokemon2) { double(:pokemon, current_hp: 6, speed: speed2, fainted?: false) }
   let(:battle) { double(:battle) }
   let(:priority1) { 1 }
   let(:priority2) { 0 }
   let(:status_conditions) { [] }
-  let(:in_battle_pokemon1) do
-    double(:in_battle_pokemon1, pokemon: pokemon1)
+  let(:active_in_battle_pokemon1) do
+    double(:active_in_battle_pokemon1, pokemon: pokemon1)
   end
-  let(:side1) { double(:side1, in_battle_pokemon: [in_battle_pokemon1]) }
+  let(:side1) { double(:side1, active_in_battle_pokemon: [active_in_battle_pokemon1]) }
   let(:action1) do
     double(:action, priority: priority1,
                     target: target_list1, pokemon: pokemon1)
@@ -53,7 +53,7 @@ describe Oakdex::Battle::Turn do
     end
 
     context 'target is fainted' do
-      let(:target1) { double(:target, current_hp: 0) }
+      let(:target1) { double(:target, fainted?: true) }
 
       it 'executes actions' do
         expect(action1).not_to receive(:execute)
@@ -63,7 +63,7 @@ describe Oakdex::Battle::Turn do
     end
 
     context 'pokemon is fainted' do
-      let(:pokemon1) { double(:pokemon, current_hp: 0, speed: speed1) }
+      let(:pokemon1) { double(:pokemon, fainted?: true, speed: speed1) }
 
       it 'executes actions' do
         expect(action1).not_to receive(:execute)

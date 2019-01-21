@@ -37,17 +37,17 @@ module Oakdex
       end
 
       def pokemon_in_battle?(position)
-        in_battle_pokemon.any? do |ibp|
+        active_in_battle_pokemon.any? do |ibp|
           ibp.position == position
         end
       end
 
       def pokemon_left?
-        !in_battle_pokemon.empty?
+        !active_in_battle_pokemon.empty?
       end
 
-      def in_battle_pokemon
-        @trainers.map(&:in_battle_pokemon).flatten(1)
+      def active_in_battle_pokemon
+        @trainers.map(&:active_in_battle_pokemon).flatten(1)
       end
 
       def fainted?
@@ -65,7 +65,7 @@ module Oakdex
       end
 
       def taken_positions
-        in_battle_pokemon.map(&:position).sort
+        active_in_battle_pokemon.map(&:position).sort
       end
 
       def all_position

@@ -9,7 +9,7 @@ describe Oakdex::Battle::StatusConditions::Freeze do
   end
   let(:move_type) { 'normal' }
   let(:move) do
-    double(:move, type: move_type)
+    double(:move, type_id: move_type)
   end
   let(:battle) { double(:battle) }
   let(:turn) { double(:turn, battle: battle) }

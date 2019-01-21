@@ -3,30 +3,36 @@ require 'spec_helper'
 describe Oakdex::Battle::Damage do
   let(:level1) { 3 }
   let(:level2) { 3 }
+  let(:pok1) do
+    Oakdex::Pokemon.create('Pikachu',
+                           level: level1,
+                           moves: [['Thunder Shock', 30, 30]]
+                          )
+  end
+  let(:pok2) do
+    Oakdex::Pokemon.create('Bulbasaur',
+                           level: level2,
+                           moves: [['Tackle', 35, 35]]
+                          )
+  end
   let(:pokemon1) do
-    Oakdex::Battle::Pokemon.create('Pikachu',
-                                   level: level1,
-                                   moves: [['Thunder Shock', 30, 30]]
-                                  )
+    trainer1.team.first
   end
   let(:pokemon2) do
-    Oakdex::Battle::Pokemon.create('Bulbasaur',
-                                   level: level2,
-                                   moves: [['Tackle', 35, 35]]
-                                  )
+    trainer2.team.first
   end
-  let(:in_battle_pokemon1) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon1) do
+    double(:active_in_battle_pokemon,
            pokemon: pokemon1, position: 0)
   end
-  let(:in_battle_pokemon2) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon2) do
+    double(:active_in_battle_pokemon,
            pokemon: pokemon2, position: 0)
   end
-  let(:side1) { double(:side, in_battle_pokemon: [in_battle_pokemon1]) }
-  let(:side2) { double(:side, in_battle_pokemon: [in_battle_pokemon2]) }
-  let(:trainer1) { Oakdex::Battle::Trainer.new('Ash', [pokemon1]) }
-  let(:trainer2) { Oakdex::Battle::Trainer.new('Misty', [pokemon2]) }
+  let(:side1) { double(:side, active_in_battle_pokemon: [active_in_battle_pokemon1]) }
+  let(:side2) { double(:side, active_in_battle_pokemon: [active_in_battle_pokemon2]) }
+  let(:trainer1) { Oakdex::Battle::Trainer.new('Ash', [pok1]) }
+  let(:trainer2) { Oakdex::Battle::Trainer.new('Misty', [pok2]) }
   let(:attributes1) do
     {
       action: 'move',
@@ -75,7 +81,8 @@ describe Oakdex::Battle::Damage do
     allow(pokemon2).to receive(:types).and_return(pokemon2_types)
     allow(pokemon1.moves.first).to receive(:category).and_return(category)
     allow(pokemon1.moves.first).to receive(:power).and_return(base_power)
-    allow(pokemon1.moves.first).to receive(:type).and_return(move_type)
+    allow(pokemon1.moves.first).to receive(:type_id).and_return(move_type)
+    allow(pokemon1.moves.first).to receive(:type).and_return(Oakdex::Pokedex::Type.find(move_type))
     allow(pokemon1).to receive(:critical_hit_prob).and_return(critical_hit_prob)
     allow(subject).to receive(:rand).with(1..1000).and_return(2)
     allow(subject).to receive(:rand).with(850..1000).and_return(random)

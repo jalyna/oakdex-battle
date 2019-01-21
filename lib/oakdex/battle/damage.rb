@@ -65,13 +65,12 @@ module Oakdex
       end
 
       def stab_modifier
-        pokemon.types.include?(move.type) ? 1.5 : 1.0
+        pokemon.types.include?(move.type_id) ? 1.5 : 1.0
       end
 
       def type_modifier
-        type_data = Oakdex::Pokedex::Type.find!(move.type)
         target.types.reduce(1.0) do |factor, type|
-          factor * type_data.effectivness[type]
+          factor * move.type.effectivness[type]
         end
       end
 

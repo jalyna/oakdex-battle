@@ -1,315 +1,243 @@
 require 'spec_helper'
 
 describe Oakdex::Battle::InBattlePokemon do
-  let(:actions) { [] }
-  let(:hp_zero) { false }
-  let(:pokemon_per_side) { 1 }
-  let(:current_hp) { double(:current_hp, zero?: hp_zero) }
-  let(:moves_with_pp) { double(:moves_with_pp) }
+  let(:primary_status_condition) { nil }
   let(:pokemon) do
-    double(:pokemon,
-           current_hp: current_hp,
-           moves_with_pp: moves_with_pp)
-  end
-  let(:side) { double(:side1, battle: battle) }
-  let(:side2) { double(:side2, battle: battle) }
-  let(:sides) { [side, side2] }
-  let(:battle) { double(:battle, pokemon_per_side: pokemon_per_side) }
-  subject { described_class.new(pokemon, side) }
-
-  before do
-    allow(battle).to receive(:sides).and_return(sides)
-    allow(battle).to receive(:actions).and_return(actions)
-    allow(side2).to receive(:pokemon_in_battle?).with(0).and_return(true)
-    allow(side2).to receive(:pokemon_in_battle?).with(1).and_return(true)
-    allow(side2).to receive(:pokemon_in_battle?).with(2).and_return(true)
-    allow(side).to receive(:pokemon_in_battle?).with(0).and_return(true)
-    allow(side).to receive(:pokemon_in_battle?).with(1).and_return(true)
-    allow(side).to receive(:pokemon_in_battle?).with(2).and_return(true)
+    double(:pokemon, {
+      hp: 17,
+      atk: 9,
+      def: 7,
+      sp_atk: 9,
+      sp_def: 8,
+      speed: 12,
+      primary_status_condition: primary_status_condition
+    })
   end
 
-  describe '#pokemon' do
-    it { expect(subject.pokemon).to eq(pokemon) }
-  end
+  subject { described_class.new(pokemon) }
 
-  describe '#position' do
-    it { expect(subject.position).to eq(0) }
-    context 'position given' do
-      subject { described_class.new(pokemon, side, 1) }
-      it { expect(subject.position).to eq(1) }
-    end
-  end
-
-  %i[current_hp moves_with_pp].each do |field|
-    describe "##{field}" do
-      it {
-        expect(subject.public_send(field))
-        .to eq(pokemon.public_send(field))
-      }
-    end
-  end
-
-  describe '#fainted?' do
-    it { expect(subject).not_to be_fainted }
-
-    context 'zero hp' do
-      let(:hp_zero) { true }
-      it { expect(subject).to be_fainted }
-    end
-  end
-
-  describe '#action_added?' do
-    let(:pokemon2) { double(:pokemon) }
-    it { expect(subject).not_to be_action_added }
-
-    context 'action exist' do
-      let(:action1) { double(:action, pokemon: pokemon) }
-      let(:actions) { [action1] }
-      it { expect(subject).to be_action_added }
-
-      context 'for other pokemon' do
-        let(:action1) { double(:action, pokemon: pokemon2) }
-        it { expect(subject).not_to be_action_added }
+  %w[
+    types
+    trainer
+    trainer=
+    name
+    moves
+    moves_with_pp
+    change_hp_by
+    change_pp_by
+    level
+    fainted?
+  ].each do |method|
+    describe "##{method}" do
+      it 'is forwarded from pokemon' do
+        value = double(:value)
+        expect(pokemon).to receive(:"#{method}").and_return(value)
+        expect(subject.public_send(method)).to eq(value)
       end
     end
   end
 
-  describe '#valid_move_actions' do
-    let(:action_added) { false }
-    let(:target) { 'target_adjacent_single' }
-    let(:move1) { double(:move, name: 'Cool Move', target: target) }
-    let(:moves_with_pp) { [move1] }
-    let(:pokemon2) { double(:pokemon) }
-    let(:in_battle_pokemon2) do
-      double(:in_battle_pokemon, pokemon: pokemon2, side: side2,
-                                 position: 0)
+  describe '#accuracy' do
+    it { expect(subject.accuracy).to eq(1) }
+  end
+
+  describe '#evasion' do
+    it { expect(subject.evasion).to eq(1) }
+  end
+
+  describe '#critical_hit_prob' do
+    it { expect(subject.critical_hit_prob).to eq(Rational(1, 24)) }
+  end
+
+  describe '#hp' do
+    it { expect(subject.hp).to eq(17) }
+  end
+
+  describe '#atk' do
+    it { expect(subject.atk).to eq(9) }
+  end
+
+  describe '#def' do
+    it { expect(subject.def).to eq(7) }
+  end
+
+  describe '#sp_atk' do
+    it { expect(subject.sp_atk).to eq(9) }
+  end
+
+  describe '#sp_def' do
+    it { expect(subject.sp_def).to eq(8) }
+  end
+
+  describe '#speed' do
+    it { expect(subject.speed).to eq(12) }
+
+    context 'status condition given' do
+      let(:condition) { double(:condition) }
+      before do
+        allow(subject).to receive(:status_conditions)
+          .and_return([condition])
+        allow(condition).to receive(:stat_modifier).with(:speed)
+          .and_return(1.5)
+      end
+
+      it { expect(subject.speed).to eq(12 * 1.5) }
     end
-    let(:in_battle_pokemon3) do
-      double(:in_battle_pokemon, side: side2, position: 1)
+  end
+
+  describe '#reset_stats' do
+    let(:initial_stat) { 100 }
+    before do
+      subject.change_stat_by(:atk, 2)
+      subject.change_stat_by(:def, -3)
+      subject.change_stat_by(:evasion, 3)
+      allow(pokemon).to receive(:atk).and_return(initial_stat)
+      allow(pokemon).to receive(:def).and_return(initial_stat)
     end
-    let(:in_battle_pokemon4) do
-      double(:in_battle_pokemon, side: side2, position: 2)
+
+    it 'resets stats' do
+      subject.reset_stats
+      expect(subject.atk).to eq(initial_stat)
+      expect(subject.atk).to eq(initial_stat)
+      expect(subject.evasion).to eq(Rational(1, 1))
     end
-    let(:in_battle_pokemon5) do
-      double(:in_battle_pokemon, side: side, position: 0)
+  end
+
+  describe '#change_stat_by' do
+    let(:change_by) { -2 }
+    let(:stat) { :atk }
+    let(:initial_stat) { 100 }
+    before do
+      allow(pokemon).to receive(stat).and_return(initial_stat)
     end
-    let(:in_battle_pokemon6) do
-      double(:in_battle_pokemon, side: side, position: 1)
+
+    it 'returns true when value was changed' do
+      expect(subject.change_stat_by(stat, change_by)).to be(true)
     end
-    let(:in_battle_pokemon7) do
-      double(:in_battle_pokemon, side: side, position: 2)
+
+    context 'stat is at minimum' do
+      let(:change_by) { -6 }
+      before { subject.change_stat_by(stat, change_by) }
+      it 'returns false when value was changed' do
+        expect(subject.change_stat_by(stat, change_by)).to be(false)
+      end
     end
+
+    context 'stat changed' do
+      before { subject.change_stat_by(stat, change_by) }
+      it {
+        expect(subject.atk).to eq((initial_stat *
+        Oakdex::Battle::InBattlePokemon::STAGE_MULTIPLIERS[-2]).to_i)
+      }
+
+      context 'accuracy' do
+        let(:stat) { :accuracy }
+
+        it {
+          expect(subject.accuracy)
+            .to eq(Oakdex::Battle::InBattlePokemon::STAGE_MULTIPLIERS_ACC_EVA[-2])
+        }
+      end
+
+      context 'evasion' do
+        let(:stat) { :evasion }
+
+        it {
+          expect(subject.evasion)
+            .to eq(Oakdex::Battle::InBattlePokemon::STAGE_MULTIPLIERS_ACC_EVA[-2])
+        }
+      end
+
+      context 'critical_hit' do
+        let(:stat) { :critical_hit }
+        let(:change_by) { 1 }
+
+        it {
+          expect(subject.critical_hit_prob)
+            .to eq(Oakdex::Battle::InBattlePokemon::
+              STAGE_MULTIPLIERS_CRITICAL_HIT[1])
+        }
+      end
+    end
+  end
+
+  context 'pokemon has primary status condition' do
+    let(:primary_status_condition) { 'poison' }
+    let(:condition_class) { ::Oakdex::Battle::StatusConditions::Poison }
+    let(:status_condition) { double(:status_condition) }
 
     before do
-      allow(side2).to receive(:in_battle_pokemon) do
-        [in_battle_pokemon2]
-      end
-      allow(side).to receive(:in_battle_pokemon) do
-        [subject]
-      end
-      allow(subject).to receive(:action_added?).and_return(action_added)
+      allow(condition_class).to receive(:new).and_return(status_condition)
+      expect(pokemon).to receive(:primary_status_condition=).with('poison')
     end
 
-    it 'returns all moves that have enough pp' do
-      expect(subject.valid_move_actions).to eq([
-                                                 {
-                                                   action: 'move',
-                                                   pokemon: pokemon,
-                                                   move: move1,
-                                                   target: [side2, 0]
-                                                 }
-                                               ])
+    it { expect(subject.status_conditions).to eq([status_condition]) }
+  end
+
+  describe '#add_status_condition' do
+    let(:condition) { 'poison' }
+    let(:condition_class) { ::Oakdex::Battle::StatusConditions::Poison }
+    let(:status_condition) { double(:status_condition) }
+
+    before do
+      allow(condition_class).to receive(:new)
+        .with(subject).and_return(status_condition)
+      expect(pokemon).to receive(:primary_status_condition=).with(condition)
+      subject.add_status_condition(condition)
     end
 
-    context '3 vs. 3' do
-      let(:pokemon_per_side) { 3 }
-      before do
-        allow(side2).to receive(:in_battle_pokemon) do
-          [in_battle_pokemon2, in_battle_pokemon3, in_battle_pokemon4]
-        end
-        allow(side).to receive(:in_battle_pokemon) do
-          [subject, in_battle_pokemon6, in_battle_pokemon7]
-        end
-      end
+    it { expect(subject.status_conditions).to eq([status_condition]) }
 
-      it 'returns targets' do
-        expect(subject.valid_move_actions.map { |m| m[:target] })
-          .to eq([[side2, 0], [side2, 1], [side, 1]])
-      end
-
-      context 'target_adjacent_user_single' do
-        let(:target) { 'target_adjacent_user_single' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 1]])
-        end
-      end
-
-      context 'target_user_or_adjacent_user' do
-        let(:target) { 'target_user_or_adjacent_user' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 0], [side, 1]])
-        end
-      end
-
-      context 'user' do
-        let(:target) { 'user' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 0]])
-        end
-      end
-
-      context 'user_and_random_adjacent_foe' do
-        let(:target) { 'user_and_random_adjacent_foe' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 0]])
-        end
-      end
-
-      context 'all_users' do
-        let(:target) { 'all_users' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side, 0], [side, 1], [side, 2]]])
-        end
-      end
-
-      context 'all_adjacent' do
-        let(:target) { 'all_adjacent' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side, 1]]])
-        end
-      end
-
-      context 'adjacent_foes_all' do
-        let(:target) { 'adjacent_foes_all' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1]]])
-        end
-      end
-
-      context 'all_foes' do
-        let(:target) { 'all_foes' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side2, 2]]])
-        end
-      end
-
-      context 'all_except_user' do
-        let(:target) { 'all_except_user' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 1], [side, 2]]])
-        end
-      end
-
-      context 'all' do
-        let(:target) { 'all' }
-
-        it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
-                     [side, 1], [side, 2]]])
-        end
-      end
-
-      context 'not all pokemon in battle' do
-        before do
-          allow(side2).to receive(:pokemon_in_battle?).with(1).and_return(false)
-          allow(side2).to receive(:pokemon_in_battle?).with(2).and_return(false)
-          allow(side2).to receive(:pokemon_left?).and_return(true)
-        end
-
-        it 'returns available targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side2, 0], [side, 1]])
-        end
-
-        context 'all' do
-          let(:target) { 'all' }
-
-          it 'returns targets' do
-            expect(subject.valid_move_actions.map { |m| m[:target] })
-              .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
-                       [side, 1], [side, 2]]])
-          end
-        end
-
-        context 'whole side not available' do
-          before do
-            allow(side2).to receive(:pokemon_in_battle?)
-              .with(0).and_return(false)
-            allow(side2).to receive(:pokemon_left?).and_return(false)
-          end
-
-          it 'returns available targets' do
-            expect(subject.valid_move_actions.map { |m| m[:target] })
-              .to eq([[side2, 0], [side, 1]])
-          end
-
-          context 'all' do
-            let(:target) { 'all' }
-
-            it 'returns targets' do
-              expect(subject.valid_move_actions.map { |m| m[:target] })
-                .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
-                         [side, 1], [side, 2]]])
-            end
-          end
-
-          context 'all_foes' do
-            let(:target) { 'all_foes' }
-
-            it 'returns targets' do
-              expect(subject.valid_move_actions.map { |m| m[:target] })
-                .to be_empty
-            end
-          end
-        end
-      end
+    context 'burn' do
+      let(:condition) { 'burn' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Burn }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
     end
 
-    context 'no moves' do
-      let(:moves_with_pp) { [] }
-      let(:struggle_move) do
-        double(:struggle_move,
-               target: 'target_adjacent_single')
-      end
-      before do
-        allow(Oakdex::Battle::Move).to receive(:new)
-          .and_return(struggle_move)
-      end
-
-      it 'returns struggle' do
-        expect(subject.valid_move_actions).to eq([
-                                                   {
-                                                     action: 'move',
-                                                     pokemon: pokemon,
-                                                     move: struggle_move,
-                                                     target: [side2, 0]
-                                                   }
-                                                 ])
-      end
+    context 'freeze' do
+      let(:condition) { 'freeze' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Freeze }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
     end
 
-    context 'existing move for this pokemon' do
-      let(:action_added) { true }
-      it { expect(subject.valid_move_actions).to be_empty }
+    context 'paralysis' do
+      let(:condition) { 'paralysis' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Paralysis }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+
+    context 'badly_poisoned' do
+      let(:condition) { 'badly_poisoned' }
+      let(:condition_class) do
+        ::Oakdex::Battle::StatusConditions::BadlyPoisoned
+      end
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+
+    context 'sleep' do
+      let(:condition) { 'sleep' }
+      let(:condition_class) { ::Oakdex::Battle::StatusConditions::Sleep }
+      it { expect(subject.status_conditions).to eq([status_condition]) }
+    end
+  end
+
+  describe '#remove_status_condition' do
+    let(:condition) { 'poison' }
+    let(:condition_class) { ::Oakdex::Battle::StatusConditions::Poison }
+    let(:status_condition) { double(:status_condition) }
+
+    before do
+      allow(condition_class).to receive(:new)
+        .with(subject).and_return(status_condition)
+      allow(pokemon).to receive(:primary_status_condition=).with(condition)
+      subject.add_status_condition(condition)
+    end
+
+    it 'removes condition' do
+      expect(subject.status_conditions).to eq([status_condition])
+      expect(pokemon).to receive(:primary_status_condition=).with(nil)
+      subject.remove_status_condition(status_condition)
+      expect(subject.status_conditions).to be_empty
     end
   end
 end

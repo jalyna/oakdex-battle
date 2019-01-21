@@ -4,7 +4,7 @@ module Oakdex
       # Represents Burn status condition
       class Burn < NonVolatile
         def after_turn(turn)
-          return if pokemon.current_hp.zero?
+          return if pokemon.fainted?
           turn.battle.add_to_log('damage_by_burn',
                                  pokemon.trainer.name,
                                  pokemon.name, hp_by_turn)
