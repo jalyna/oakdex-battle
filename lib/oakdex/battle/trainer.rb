@@ -12,17 +12,19 @@ module Oakdex
       end
 
       def fainted?
-        @team.all? { |p| p.fainted? }
+        @team.all?(&:fainted?)
       end
 
       def send_to_battle(pokemon, side)
-        @active_in_battle_pokemon << ActiveInBattlePokemon.new(pokemon,
-                                                  side, side.next_position)
+        @active_in_battle_pokemon << ActiveInBattlePokemon.new(
+          pokemon,
+          side, side.next_position)
         side.add_to_log 'sends_to_battle', name, pokemon.name
       end
 
       def remove_from_battle(pokemon, side)
-        ibp_to_remove = @active_in_battle_pokemon.find { |ibp| ibp.pokemon == pokemon }
+        ibp_to_remove = @active_in_battle_pokemon
+          .find { |ibp| ibp.pokemon == pokemon }
         pokemon.reset_stats
         pokemon.status_conditions.each do |s|
           s.after_switched_out(ibp_to_remove.battle)

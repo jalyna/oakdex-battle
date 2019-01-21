@@ -8,6 +8,7 @@ module Oakdex
       extend Forwardable
 
       OTHER_STATS = %i[accuracy evasion critical_hit]
+      ALL_STATS = Oakdex::Pokemon::BATTLE_STATS + OTHER_STATS
       STATUS_CONDITIONS = {
         'poison' => StatusConditions::Poison,
         'burn' => StatusConditions::Burn,
@@ -95,7 +96,7 @@ module Oakdex
       end
 
       def reset_stats
-        @stat_modifiers = (Oakdex::Pokemon::BATTLE_STATS + OTHER_STATS - %i[hp]).map do |stat|
+        @stat_modifiers = (ALL_STATS - %i[hp]).map do |stat|
           [stat, 0]
         end.to_h
       end

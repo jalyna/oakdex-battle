@@ -34,12 +34,12 @@ module Oakdex
         end
       end
 
-      def recall_action(trainer, active_in_battle_pokemon, target)
-        return if !recall_action_valid?(trainer, active_in_battle_pokemon, target) ||
+      def recall_action(trainer, active_ibp, target)
+        return if !recall_action_valid?(trainer, active_ibp, target) ||
                   recall_action_for?(target)
         {
           action: 'recall',
-          pokemon: active_in_battle_pokemon&.position || side(trainer).next_position,
+          pokemon: active_ibp&.position || side(trainer).next_position,
           target: target
         }
       end
