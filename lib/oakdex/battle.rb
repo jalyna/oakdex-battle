@@ -8,7 +8,7 @@ require 'oakdex/battle/damage'
 require 'oakdex/battle/turn'
 require 'oakdex/battle/valid_action_service'
 require 'oakdex/battle/side'
-require 'oakdex/battle/in_battle_pokemon'
+require 'oakdex/battle/active_in_battle_pokemon'
 
 module Oakdex
   # Represents battle, with has n turns and m sides

@@ -36,7 +36,7 @@ module Oakdex
       end
 
       def status_conditions
-        sides.flat_map(&:in_battle_pokemon)
+        sides.flat_map(&:active_in_battle_pokemon)
           .map(&:pokemon)
           .flat_map(&:status_conditions)
       end

@@ -2,8 +2,8 @@ require 'forwardable'
 
 module Oakdex
   class Battle
-    # Represents a pokemon that is in battle
-    class InBattlePokemon
+    # Represents a pokemon that is actively fighting in battle
+    class ActiveInBattlePokemon
       extend Forwardable
 
       def_delegators :@pokemon, :current_hp, :moves_with_pp

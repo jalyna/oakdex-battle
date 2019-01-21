@@ -19,8 +19,8 @@ describe Oakdex::Battle::Trainer do
   let(:side) { double(:side) }
   let(:fainted) { false }
   let(:battle) { double(:battle) }
-  let(:in_battle_pokemon) do
-    double(:in_battle_pokemon, fainted?: fainted,
+  let(:active_in_battle_pokemon) do
+    double(:active_in_battle_pokemon, fainted?: fainted,
                                pokemon: pokemon1,
                                battle: battle)
   end
@@ -34,8 +34,8 @@ describe Oakdex::Battle::Trainer do
     it { expect(subject.team).to eq(team) }
   end
 
-  describe '#in_battle_pokemon' do
-    it { expect(subject.in_battle_pokemon).to eq([]) }
+  describe '#active_in_battle_pokemon' do
+    it { expect(subject.active_in_battle_pokemon).to eq([]) }
   end
 
   describe '#fainted?' do
@@ -56,8 +56,8 @@ describe Oakdex::Battle::Trainer do
     let(:position) { 0 }
 
     before do
-      allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-        .with(pokemon1, side, position).and_return(in_battle_pokemon)
+      allow(Oakdex::Battle::ActiveInBattlePokemon).to receive(:new)
+        .with(pokemon1, side, position).and_return(active_in_battle_pokemon)
       allow(side).to receive(:add_to_log)
         .with('sends_to_battle', name, pokemon1.name)
       allow(side).to receive(:next_position).and_return(position)
@@ -65,7 +65,7 @@ describe Oakdex::Battle::Trainer do
 
     it 'sends pokemon to battle' do
       subject.send_to_battle(pokemon1, side)
-      expect(subject.in_battle_pokemon).to eq([in_battle_pokemon])
+      expect(subject.active_in_battle_pokemon).to eq([active_in_battle_pokemon])
     end
 
     it 'adds to logs' do
@@ -80,8 +80,8 @@ describe Oakdex::Battle::Trainer do
     let(:status_condition) { double(:status_condition) }
 
     before do
-      allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-        .with(pokemon1, side, position).and_return(in_battle_pokemon)
+      allow(Oakdex::Battle::ActiveInBattlePokemon).to receive(:new)
+        .with(pokemon1, side, position).and_return(active_in_battle_pokemon)
       allow(side).to receive(:add_to_log)
         .with('sends_to_battle', name, pokemon1.name)
       allow(side).to receive(:add_to_log)
@@ -99,7 +99,7 @@ describe Oakdex::Battle::Trainer do
       expect(status_condition).to receive(:after_switched_out)
         .with(battle)
       subject.remove_from_battle(pokemon1, side)
-      expect(subject.in_battle_pokemon).to eq([])
+      expect(subject.active_in_battle_pokemon).to eq([])
     end
 
     it 'adds to logs' do
@@ -118,8 +118,8 @@ describe Oakdex::Battle::Trainer do
     let(:position) { 0 }
     let(:status_condition) { double(:status_condition) }
     before do
-      allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-        .with(pokemon1, side, position).and_return(in_battle_pokemon)
+      allow(Oakdex::Battle::ActiveInBattlePokemon).to receive(:new)
+        .with(pokemon1, side, position).and_return(active_in_battle_pokemon)
       allow(side).to receive(:add_to_log)
         .with('sends_to_battle', name, pokemon1.name)
       allow(side).to receive(:next_position).and_return(position)
@@ -131,7 +131,7 @@ describe Oakdex::Battle::Trainer do
     it 'does nothing' do
       expect(battle).not_to receive(:add_to_log)
       subject.remove_fainted
-      expect(subject.in_battle_pokemon).to eq([in_battle_pokemon])
+      expect(subject.active_in_battle_pokemon).to eq([active_in_battle_pokemon])
     end
 
     context 'pokemon fainted' do
@@ -142,7 +142,7 @@ describe Oakdex::Battle::Trainer do
           .with('pokemon_fainted', name, pokemon1.name)
         expect(status_condition).to receive(:after_fainted).with(battle)
         subject.remove_fainted
-        expect(subject.in_battle_pokemon).to eq([])
+        expect(subject.active_in_battle_pokemon).to eq([])
       end
     end
   end
@@ -159,8 +159,8 @@ describe Oakdex::Battle::Trainer do
 
     context 'has in battle pokemon' do
       before do
-        allow(Oakdex::Battle::InBattlePokemon).to receive(:new)
-          .with(pokemon1, side, position).and_return(in_battle_pokemon)
+        allow(Oakdex::Battle::ActiveInBattlePokemon).to receive(:new)
+          .with(pokemon1, side, position).and_return(active_in_battle_pokemon)
         allow(side).to receive(:add_to_log)
           .with('sends_to_battle', name, pokemon1.name)
         allow(side).to receive(:next_position).and_return(position)

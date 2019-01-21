@@ -13,10 +13,10 @@ describe Oakdex::Battle::Turn do
   let(:priority1) { 1 }
   let(:priority2) { 0 }
   let(:status_conditions) { [] }
-  let(:in_battle_pokemon1) do
-    double(:in_battle_pokemon1, pokemon: pokemon1)
+  let(:active_in_battle_pokemon1) do
+    double(:active_in_battle_pokemon1, pokemon: pokemon1)
   end
-  let(:side1) { double(:side1, in_battle_pokemon: [in_battle_pokemon1]) }
+  let(:side1) { double(:side1, active_in_battle_pokemon: [active_in_battle_pokemon1]) }
   let(:action1) do
     double(:action, priority: priority1,
                     target: target_list1, pokemon: pokemon1)

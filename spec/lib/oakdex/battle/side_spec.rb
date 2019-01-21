@@ -16,18 +16,18 @@ describe Oakdex::Battle::Side do
   subject { described_class.new(battle, trainers) }
 
   describe '#next_position' do
-    let(:in_battle_pokemon1) { double(:in_battle_pokemon, position: 0) }
-    let(:in_battle_pokemon_list1) { [] }
+    let(:active_in_battle_pokemon1) { double(:active_in_battle_pokemon, position: 0) }
+    let(:active_in_battle_pokemon_list1) { [] }
     let(:trainers) { [trainer1] }
     before do
-      allow(trainer1).to receive(:in_battle_pokemon)
-        .and_return(in_battle_pokemon_list1)
+      allow(trainer1).to receive(:active_in_battle_pokemon)
+        .and_return(active_in_battle_pokemon_list1)
     end
 
     it { expect(subject.next_position).to eq(0) }
 
     context 'pokemon in battle' do
-      let(:in_battle_pokemon_list1) { [in_battle_pokemon1] }
+      let(:active_in_battle_pokemon_list1) { [active_in_battle_pokemon1] }
       it { expect(subject.next_position).to be_nil }
 
       context '2 pokemon in battle' do
@@ -101,20 +101,20 @@ describe Oakdex::Battle::Side do
     it { expect(subject).not_to be_trainer_on_side(trainer3) }
   end
 
-  describe '#in_battle_pokemon' do
-    let(:in_battle_pokemon1) { double(:in_battle_pokemon) }
-    let(:in_battle_pokemon2) { double(:in_battle_pokemon) }
+  describe '#active_in_battle_pokemon' do
+    let(:active_in_battle_pokemon1) { double(:active_in_battle_pokemon) }
+    let(:active_in_battle_pokemon2) { double(:active_in_battle_pokemon) }
 
     before do
-      allow(trainer1).to receive(:in_battle_pokemon)
-        .and_return([in_battle_pokemon1])
-      allow(trainer2).to receive(:in_battle_pokemon)
-        .and_return([in_battle_pokemon2])
+      allow(trainer1).to receive(:active_in_battle_pokemon)
+        .and_return([active_in_battle_pokemon1])
+      allow(trainer2).to receive(:active_in_battle_pokemon)
+        .and_return([active_in_battle_pokemon2])
     end
 
     it 'returns battle pokemon' do
-      expect(subject.in_battle_pokemon)
-        .to eq([in_battle_pokemon1, in_battle_pokemon2])
+      expect(subject.active_in_battle_pokemon)
+        .to eq([active_in_battle_pokemon1, active_in_battle_pokemon2])
     end
   end
 
@@ -141,12 +141,12 @@ describe Oakdex::Battle::Side do
   end
 
   describe '#pokemon_in_battle?' do
-    let(:in_battle_pokemon1) { double(:in_battle_pokemon, position: 0) }
-    let(:in_battle_pokemon_list1) { [in_battle_pokemon1] }
+    let(:active_in_battle_pokemon1) { double(:active_in_battle_pokemon, position: 0) }
+    let(:active_in_battle_pokemon_list1) { [active_in_battle_pokemon1] }
     let(:trainers) { [trainer1] }
     before do
-      allow(trainer1).to receive(:in_battle_pokemon)
-        .and_return(in_battle_pokemon_list1)
+      allow(trainer1).to receive(:active_in_battle_pokemon)
+        .and_return(active_in_battle_pokemon_list1)
     end
 
     it { expect(subject).to be_pokemon_in_battle(0) }
@@ -154,18 +154,18 @@ describe Oakdex::Battle::Side do
   end
 
   describe '#pokemon_left?' do
-    let(:in_battle_pokemon1) { double(:in_battle_pokemon, position: 0) }
-    let(:in_battle_pokemon_list1) { [in_battle_pokemon1] }
+    let(:active_in_battle_pokemon1) { double(:active_in_battle_pokemon, position: 0) }
+    let(:active_in_battle_pokemon_list1) { [active_in_battle_pokemon1] }
     let(:trainers) { [trainer1] }
     before do
-      allow(trainer1).to receive(:in_battle_pokemon)
-        .and_return(in_battle_pokemon_list1)
+      allow(trainer1).to receive(:active_in_battle_pokemon)
+        .and_return(active_in_battle_pokemon_list1)
     end
 
     it { expect(subject).to be_pokemon_left }
 
     context 'no pokemon' do
-      let(:in_battle_pokemon_list1) { [] }
+      let(:active_in_battle_pokemon_list1) { [] }
       it { expect(subject).not_to be_pokemon_left }
     end
   end

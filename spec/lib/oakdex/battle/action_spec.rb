@@ -12,34 +12,34 @@ describe Oakdex::Battle::Action do
                      trainer: trainer2)
   end
   let(:side1) { double(:side) }
-  let(:in_battle_pokemon_list2) { [in_battle_pokemon2] }
-  let(:side2) { double(:side, in_battle_pokemon: in_battle_pokemon_list2) }
+  let(:active_in_battle_pokemon_list2) { [active_in_battle_pokemon2] }
+  let(:side2) { double(:side, active_in_battle_pokemon: active_in_battle_pokemon_list2) }
   let(:move1) do
     double(:move, name: 'Cool Move', priority: 0)
   end
-  let(:in_battle_pokemon_list1) { [in_battle_pokemon1] }
+  let(:active_in_battle_pokemon_list1) { [active_in_battle_pokemon1] }
   let(:trainer2) do
     double(:trainer,
            name: 'Trainer2')
   end
   let(:trainer1) do
     double(:trainer,
-           in_battle_pokemon: in_battle_pokemon_list1,
+           active_in_battle_pokemon: active_in_battle_pokemon_list1,
            name: 'Trainer1')
   end
-  let(:in_battle_pokemon1) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon1) do
+    double(:active_in_battle_pokemon,
            position: 0, pokemon: pokemon1)
   end
-  let(:in_battle_pokemon2) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon2) do
+    double(:active_in_battle_pokemon,
            position: 0, pokemon: pokemon3)
   end
-  let(:in_battle_pokemon3) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon3) do
+    double(:active_in_battle_pokemon,
            position: 1, pokemon: pokemon4)
   end
-  let(:targets) { [side2, in_battle_pokemon2.position] }
+  let(:targets) { [side2, active_in_battle_pokemon2.position] }
   let(:move_attributes) do
     {
       action: 'move',
@@ -51,7 +51,7 @@ describe Oakdex::Battle::Action do
   let(:recall_attributes) do
     {
       action: 'recall',
-      pokemon: in_battle_pokemon1.position,
+      pokemon: active_in_battle_pokemon1.position,
       target: pokemon2
     }
   end
@@ -79,7 +79,7 @@ describe Oakdex::Battle::Action do
       it { expect(subject.pokemon).to eq(pokemon1) }
 
       context 'no in battle pokemon' do
-        let(:in_battle_pokemon_list1) { [] }
+        let(:active_in_battle_pokemon_list1) { [] }
         it { expect(subject.pokemon).to be_nil }
       end
     end
@@ -89,7 +89,7 @@ describe Oakdex::Battle::Action do
     it { expect(subject.target).to eq([pokemon3]) }
 
     context 'no in battle pokemon' do
-      let(:in_battle_pokemon_list2) { [] }
+      let(:active_in_battle_pokemon_list2) { [] }
       it { expect(subject.target).to be_empty }
     end
 
@@ -141,11 +141,11 @@ describe Oakdex::Battle::Action do
     end
 
     context 'multiple targets' do
-      let(:in_battle_pokemon_list2) { [in_battle_pokemon2, in_battle_pokemon3] }
+      let(:active_in_battle_pokemon_list2) { [active_in_battle_pokemon2, active_in_battle_pokemon3] }
       let(:targets) do
         [
-          [side2, in_battle_pokemon2.position],
-          [side2, in_battle_pokemon3.position]
+          [side2, active_in_battle_pokemon2.position],
+          [side2, active_in_battle_pokemon3.position]
         ]
       end
 
@@ -178,7 +178,7 @@ describe Oakdex::Battle::Action do
       end
 
       context 'no pokemon in battle' do
-        let(:in_battle_pokemon_list1) { [] }
+        let(:active_in_battle_pokemon_list1) { [] }
 
         it 'adds log' do
           expect(battle).to receive(:add_to_log)

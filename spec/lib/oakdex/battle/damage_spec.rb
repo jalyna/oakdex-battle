@@ -15,16 +15,16 @@ describe Oakdex::Battle::Damage do
                                    moves: [['Tackle', 35, 35]]
                                   )
   end
-  let(:in_battle_pokemon1) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon1) do
+    double(:active_in_battle_pokemon,
            pokemon: pokemon1, position: 0)
   end
-  let(:in_battle_pokemon2) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon2) do
+    double(:active_in_battle_pokemon,
            pokemon: pokemon2, position: 0)
   end
-  let(:side1) { double(:side, in_battle_pokemon: [in_battle_pokemon1]) }
-  let(:side2) { double(:side, in_battle_pokemon: [in_battle_pokemon2]) }
+  let(:side1) { double(:side, active_in_battle_pokemon: [active_in_battle_pokemon1]) }
+  let(:side2) { double(:side, active_in_battle_pokemon: [active_in_battle_pokemon2]) }
   let(:trainer1) { Oakdex::Battle::Trainer.new('Ash', [pokemon1]) }
   let(:trainer2) { Oakdex::Battle::Trainer.new('Misty', [pokemon2]) }
   let(:attributes1) do

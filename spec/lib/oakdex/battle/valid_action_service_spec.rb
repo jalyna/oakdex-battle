@@ -7,31 +7,31 @@ describe Oakdex::Battle::ValidActionService do
   let(:valid_move) { double(:valid_move) }
   let(:action_added) { false }
   let(:actions) { [] }
-  let(:in_battle_pokemon1) do
-    double(:in_battle_pokemon,
+  let(:active_in_battle_pokemon1) do
+    double(:active_in_battle_pokemon,
            position: 0,
            valid_move_actions: [valid_move],
            pokemon: pokemon1,
            action_added?: action_added)
   end
-  let(:in_battle_pokemon2) do
-    double(:in_battle_pokemon)
+  let(:active_in_battle_pokemon2) do
+    double(:active_in_battle_pokemon)
   end
   let(:left_pokemon_in_team) { [] }
-  let(:in_battle_pokemon_list) { [in_battle_pokemon1] }
-  let(:in_battle_pokemon_list2) { [in_battle_pokemon2] }
+  let(:active_in_battle_pokemon_list) { [active_in_battle_pokemon1] }
+  let(:active_in_battle_pokemon_list2) { [active_in_battle_pokemon2] }
   let(:trainer1) do
     double(:trainer,
-           in_battle_pokemon: in_battle_pokemon_list,
+           active_in_battle_pokemon: active_in_battle_pokemon_list,
            left_pokemon_in_team: left_pokemon_in_team)
   end
   let(:side1) do
     double(:side,
            next_position: next_position1,
            trainers: [trainer1],
-           in_battle_pokemon: in_battle_pokemon_list)
+           active_in_battle_pokemon: active_in_battle_pokemon_list)
   end
-  let(:side2) { double(:side, in_battle_pokemon: in_battle_pokemon_list2) }
+  let(:side2) { double(:side, active_in_battle_pokemon: active_in_battle_pokemon_list2) }
   let(:battle) { double(:battle, sides: [side1, side2], actions: actions) }
   subject { described_class.new(battle) }
 
@@ -50,7 +50,7 @@ describe Oakdex::Battle::ValidActionService do
       let(:recall_action) do
         {
           action: 'recall',
-          pokemon: in_battle_pokemon1.position,
+          pokemon: active_in_battle_pokemon1.position,
           target: pokemon2
         }
       end
@@ -72,12 +72,12 @@ describe Oakdex::Battle::ValidActionService do
       end
 
       context 'no in battle pokemon on other side' do
-        let(:in_battle_pokemon_list2) { [] }
+        let(:active_in_battle_pokemon_list2) { [] }
         it { expect(subject.valid_actions_for(trainer1)).to eq([]) }
       end
 
       context 'in battle pokemon fainted' do
-        let(:in_battle_pokemon_list) { [] }
+        let(:active_in_battle_pokemon_list) { [] }
         let(:recall_action2) do
           {
             action: 'recall',

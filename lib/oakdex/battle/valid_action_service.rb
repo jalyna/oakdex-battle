@@ -21,32 +21,32 @@ module Oakdex
       private
 
       def valid_move_actions_for(trainer)
-        trainer.in_battle_pokemon.flat_map(&:valid_move_actions)
+        trainer.active_in_battle_pokemon.flat_map(&:valid_move_actions)
       end
 
       def valid_recall_actions_for(trainer)
         trainer.left_pokemon_in_team.flat_map do |pokemon|
           pokemon_per_trainer.times.map do |position|
             recall_action(trainer,
-                          trainer.in_battle_pokemon[position],
+                          trainer.active_in_battle_pokemon[position],
                           pokemon)
           end.compact
         end
       end
 
-      def recall_action(trainer, in_battle_pokemon, target)
-        return if !recall_action_valid?(trainer, in_battle_pokemon, target) ||
+      def recall_action(trainer, active_in_battle_pokemon, target)
+        return if !recall_action_valid?(trainer, active_in_battle_pokemon, target) ||
                   recall_action_for?(target)
         {
           action: 'recall',
-          pokemon: in_battle_pokemon&.position || side(trainer).next_position,
+          pokemon: active_in_battle_pokemon&.position || side(trainer).next_position,
           target: target
         }
       end
 
-      def recall_action_valid?(trainer, in_battle_pokemon, _target)
-        if in_battle_pokemon
-          !in_battle_pokemon.action_added?
+      def recall_action_valid?(trainer, active_in_battle_pokemon, _target)
+        if active_in_battle_pokemon
+          !active_in_battle_pokemon.action_added?
         else
           next_position = side(trainer).next_position
           next_position && !recall_action_for_position?(next_position)
@@ -70,11 +70,11 @@ module Oakdex
       end
 
       def no_battle_pokemon?(trainer)
-        other_sides(trainer).all? { |s| s.in_battle_pokemon.empty? }
+        other_sides(trainer).all? { |s| s.active_in_battle_pokemon.empty? }
       end
 
       def own_battle_pokemon?(trainer)
-        !side(trainer).in_battle_pokemon.empty?
+        !side(trainer).active_in_battle_pokemon.empty?
       end
 
       def other_sides(trainer)

@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Oakdex::Battle::InBattlePokemon do
+describe Oakdex::Battle::ActiveInBattlePokemon do
   let(:actions) { [] }
   let(:hp_zero) { false }
   let(:pokemon_per_side) { 1 }
@@ -80,31 +80,31 @@ describe Oakdex::Battle::InBattlePokemon do
     let(:move1) { double(:move, name: 'Cool Move', target: target) }
     let(:moves_with_pp) { [move1] }
     let(:pokemon2) { double(:pokemon) }
-    let(:in_battle_pokemon2) do
-      double(:in_battle_pokemon, pokemon: pokemon2, side: side2,
+    let(:active_in_battle_pokemon2) do
+      double(:active_in_battle_pokemon, pokemon: pokemon2, side: side2,
                                  position: 0)
     end
-    let(:in_battle_pokemon3) do
-      double(:in_battle_pokemon, side: side2, position: 1)
+    let(:active_in_battle_pokemon3) do
+      double(:active_in_battle_pokemon, side: side2, position: 1)
     end
-    let(:in_battle_pokemon4) do
-      double(:in_battle_pokemon, side: side2, position: 2)
+    let(:active_in_battle_pokemon4) do
+      double(:active_in_battle_pokemon, side: side2, position: 2)
     end
-    let(:in_battle_pokemon5) do
-      double(:in_battle_pokemon, side: side, position: 0)
+    let(:active_in_battle_pokemon5) do
+      double(:active_in_battle_pokemon, side: side, position: 0)
     end
-    let(:in_battle_pokemon6) do
-      double(:in_battle_pokemon, side: side, position: 1)
+    let(:active_in_battle_pokemon6) do
+      double(:active_in_battle_pokemon, side: side, position: 1)
     end
-    let(:in_battle_pokemon7) do
-      double(:in_battle_pokemon, side: side, position: 2)
+    let(:active_in_battle_pokemon7) do
+      double(:active_in_battle_pokemon, side: side, position: 2)
     end
 
     before do
-      allow(side2).to receive(:in_battle_pokemon) do
-        [in_battle_pokemon2]
+      allow(side2).to receive(:active_in_battle_pokemon) do
+        [active_in_battle_pokemon2]
       end
-      allow(side).to receive(:in_battle_pokemon) do
+      allow(side).to receive(:active_in_battle_pokemon) do
         [subject]
       end
       allow(subject).to receive(:action_added?).and_return(action_added)
@@ -124,11 +124,11 @@ describe Oakdex::Battle::InBattlePokemon do
     context '3 vs. 3' do
       let(:pokemon_per_side) { 3 }
       before do
-        allow(side2).to receive(:in_battle_pokemon) do
-          [in_battle_pokemon2, in_battle_pokemon3, in_battle_pokemon4]
+        allow(side2).to receive(:active_in_battle_pokemon) do
+          [active_in_battle_pokemon2, active_in_battle_pokemon3, active_in_battle_pokemon4]
         end
-        allow(side).to receive(:in_battle_pokemon) do
-          [subject, in_battle_pokemon6, in_battle_pokemon7]
+        allow(side).to receive(:active_in_battle_pokemon) do
+          [subject, active_in_battle_pokemon6, active_in_battle_pokemon7]
         end
       end
 
@@ -291,7 +291,7 @@ describe Oakdex::Battle::InBattlePokemon do
                target: 'target_adjacent_single')
       end
       before do
-        allow(Oakdex::Battle::Move).to receive(:new)
+        allow(Oakdex::Pokemon::Move).to receive(:new)
           .and_return(struggle_move)
       end
 
