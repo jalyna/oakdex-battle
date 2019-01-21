@@ -56,11 +56,9 @@ module Oakdex
         6 => Rational(9, 3)
       }
 
-      def_delegators :@pokemon, :species, :types, :trainer, :trainer=,
-                     :name, :gender, :moves, :current_hp, :wild?,
-                     :item_id, :amie, :amie_level, :traded?,
-                     :moves_with_pp, :change_hp_by, :change_pp_by,
-                     :level, :fainted?
+      def_delegators :@pokemon, :types, :trainer, :trainer=,
+                     :name, :moves, :moves_with_pp, :change_hp_by,
+                     :change_pp_by, :level, :fainted?
 
       attr_reader :status_conditions
 

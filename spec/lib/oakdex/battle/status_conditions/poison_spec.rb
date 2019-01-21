@@ -5,7 +5,8 @@ describe Oakdex::Battle::StatusConditions::Poison do
   let(:current_hp) { 20 }
   let(:pokemon) do
     double(:pokemon, hp: 25, trainer: trainer, name: 'Pokemon',
-                     current_hp: current_hp)
+                     current_hp: current_hp,
+                     fainted?: current_hp.zero?)
   end
   let(:battle) { double(:battle) }
   let(:turn) { double(:turn, battle: battle) }

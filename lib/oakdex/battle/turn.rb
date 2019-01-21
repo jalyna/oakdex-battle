@@ -19,7 +19,7 @@ module Oakdex
 
         ordered_actions.each do |action|
           next unless valid_target?(action)
-          next if action.pokemon && action.pokemon.current_hp.zero?
+          next if action.pokemon && action.pokemon.fainted?
           action.execute(self)
         end
 
@@ -44,7 +44,7 @@ module Oakdex
       def valid_target?(action)
         targets = action.target.is_a?(Array) ? action.target : [action.target]
         targets.all? do |target|
-          !target.nil? && !target.current_hp.zero?
+          !target.nil? && !target.fainted?
         end
       end
 

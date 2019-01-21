@@ -12,7 +12,7 @@ module Oakdex
       end
 
       def fainted?
-        @team.all? { |p| p.current_hp.zero? }
+        @team.all? { |p| p.fainted? }
       end
 
       def send_to_battle(pokemon, side)
@@ -42,7 +42,7 @@ module Oakdex
       end
 
       def left_pokemon_in_team
-        @team.select { |p| !p.current_hp.zero? } -
+        @team.select { |p| !p.fainted? } -
           @active_in_battle_pokemon.map(&:pokemon)
       end
     end

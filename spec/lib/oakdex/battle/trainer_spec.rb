@@ -9,11 +9,13 @@ describe Oakdex::Battle::Trainer do
   let(:pokemon1) do
     double(:pokemon,
            name: 'Pok1',
-           current_hp: current_hp1)
+           current_hp: current_hp1,
+           fainted?: current_hp1 == 0)
   end
   let(:pokemon2) do
     double(:pokemon,
-           current_hp: current_hp2)
+           current_hp: current_hp2,
+           fainted?: current_hp2 == 0)
   end
   let(:team) { [pokemon1, pokemon2] }
   let(:side) { double(:side) }

@@ -90,7 +90,7 @@ describe Oakdex::Battle::MoveExecution do
         .with(move1.name, -1)
       allow(target).to receive(:change_hp_by)
         .with(-damage_points)
-      allow(target).to receive(:current_hp).and_return(target_hp)
+      allow(target).to receive(:fainted?).and_return(target_hp == 0)
     end
 
     it 'reduces pp' do

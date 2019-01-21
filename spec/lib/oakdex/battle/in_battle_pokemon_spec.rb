@@ -17,19 +17,11 @@ describe Oakdex::Battle::InBattlePokemon do
   subject { described_class.new(pokemon) }
 
   %w[
-    species
     types
     trainer
     trainer=
     name
-    gender
     moves
-    current_hp
-    wild?
-    item_id
-    amie
-    amie_level
-    traded?
     moves_with_pp
     change_hp_by
     change_pp_by
