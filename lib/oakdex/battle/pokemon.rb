@@ -1,16 +1,12 @@
 require 'forwardable'
-require 'oakdex/battle/pokemon_stat'
-require 'oakdex/battle/move'
-require 'oakdex/battle/pokemon_factory'
 require 'oakdex/battle/status_conditions'
 
 module Oakdex
   class Battle
-    # Represents detailed pokemon instance
+    # Represents detailed battle pokemon instance
     class Pokemon
       extend Forwardable
 
-      BATTLE_STATS = %i[hp atk def sp_atk sp_def speed]
       OTHER_STATS = %i[accuracy evasion critical_hit]
       STATUS_CONDITIONS = {
         'poison' => StatusConditions::Poison,
@@ -21,94 +17,57 @@ module Oakdex
         'sleep' => StatusConditions::Sleep
       }
 
-      def_delegators :@species, :types
+      STAGE_MULTIPLIERS = {
+        -6 => Rational(2, 8),
+        -5 => Rational(2, 7),
+        -4 => Rational(2, 6),
+        -3 => Rational(2, 5),
+        -2 => Rational(2, 4),
+        -1 => Rational(2, 3),
+        0 => Rational(2, 2),
+        1 => Rational(3, 2),
+        2 => Rational(4, 2),
+        3 => Rational(5, 2),
+        4 => Rational(6, 2),
+        5 => Rational(7, 2),
+        6 => Rational(8, 2)
+      }
 
-      attr_accessor :trainer
-      attr_reader :species
+      STAGE_MULTIPLIERS_CRITICAL_HIT = {
+        0 => Rational(1, 24),
+        1 => Rational(1, 8),
+        2 => Rational(1, 2),
+        3 => Rational(1, 1)
+      }
 
-      def self.create(species_name, options = {})
-        species = Oakdex::Pokedex::Pokemon.find!(species_name)
-        Oakdex::Battle::PokemonFactory.create(species, options)
-      end
+      STAGE_MULTIPLIERS_ACC_EVA = {
+        -6 => Rational(3, 9),
+        -5 => Rational(3, 8),
+        -4 => Rational(3, 7),
+        -3 => Rational(3, 6),
+        -2 => Rational(3, 5),
+        -1 => Rational(3, 4),
+        0 => Rational(3, 3),
+        1 => Rational(4, 3),
+        2 => Rational(5, 3),
+        3 => Rational(6, 3),
+        4 => Rational(7, 3),
+        5 => Rational(8, 3),
+        6 => Rational(9, 3)
+      }
 
-      def initialize(species, attributes = {})
-        @species = species
-        @attributes = attributes
-        @attributes[:status_conditions] ||= []
+      def_delegators :@pokemon, :species, :types, :trainer, :trainer=,
+                     :name, :gender, :moves, :current_hp, :wild?,
+                     :item_id, :amie, :amie_level, :traded?,
+                     :moves_with_pp, :change_hp_by, :change_pp_by,
+                     :level
+
+      attr_reader :status_conditions
+
+      def initialize(pokemon, options = {})
+        @pokemon = pokemon
+        @status_conditions = options[:status_conditions] || []
         reset_stats
-      end
-
-      def name
-        @species.names['en']
-      end
-
-      def gender
-        @attributes[:gender]
-      end
-
-      def moves
-        @attributes[:moves]
-      end
-
-      def current_hp
-        @attributes[:hp]
-      end
-
-      def status_conditions
-        @attributes[:status_conditions]
-      end
-
-      def moves_with_pp
-        moves.select { |m| m.pp > 0 }
-      end
-
-      def wild?
-        @attributes[:wild]
-      end
-
-      def original_trainer
-        @attributes[:original_trainer]
-      end
-
-      def item_id
-        @attributes[:item_id]
-      end
-
-      def amie
-        {
-          affection: 0,
-          fullness: 0,
-          enjoyment: 0
-        }.merge(@attributes[:amie] || {})
-      end
-
-      def amie_level(amie_stat)
-        5 - [255, 150, 100, 50, 1, 0].find_index do |treshold|
-          amie[amie_stat] >= treshold
-        end
-      end
-
-      def traded?
-        return false if trainer.nil? || original_trainer.nil?
-        trainer.name != original_trainer
-      end
-
-      def change_hp_by(hp_change)
-        @attributes[:hp] = if hp_change < 0
-                             [@attributes[:hp] + hp_change, 0].max
-                           else
-                             [@attributes[:hp] + hp_change, hp].min
-                           end
-      end
-
-      def change_pp_by(move_name, pp_change)
-        move = moves.find { |m| m.name == move_name }
-        return unless move
-        move.pp = if pp_change < 0
-                    [move.pp + pp_change, 0].max
-                  else
-                    [move.pp + pp_change, move.max_pp].min
-                  end
       end
 
       def change_stat_by(stat, change_by)
@@ -125,22 +84,17 @@ module Oakdex
       end
 
       def add_status_condition(condition_name)
-        @attributes[:status_conditions] << status_condition(condition_name)
+        @status_conditions << status_condition(condition_name)
       end
 
       def remove_status_condition(condition)
-        @attributes[:status_conditions] = @attributes[:status_conditions]
-          .reject { |s| s == condition }
+        @status_conditions = @status_conditions.reject { |s| s == condition }
       end
 
       def reset_stats
-        @stat_modifiers = (BATTLE_STATS + OTHER_STATS - %i[hp]).map do |stat|
+        @stat_modifiers = (Oakdex::Pokemon::BATTLE_STATS + OTHER_STATS - %i[hp]).map do |stat|
           [stat, 0]
         end.to_h
-      end
-
-      def level
-        PokemonStat.level_by_exp(@species.leveling_rate, @attributes[:exp])
       end
 
       def accuracy
@@ -155,9 +109,9 @@ module Oakdex
         stage(:critical_hit)
       end
 
-      BATTLE_STATS.each do |stat|
+      Oakdex::Pokemon::BATTLE_STATS.each do |stat|
         define_method stat do
-          (initial_stat(stat) * stage(stat) *
+          (@pokemon.public_send(stat) * stage(stat) *
             status_condition_modifier(stat)).to_i
         end
       end
@@ -179,24 +133,14 @@ module Oakdex
         multipliers[@stat_modifiers[stat] || 0]
       end
 
-      def initial_stat(stat)
-        PokemonStat.initial_stat(stat,
-                                 level:      level,
-                                 nature:     @attributes[:nature],
-                                 iv:         @attributes[:iv],
-                                 ev:         @attributes[:ev],
-                                 base_stats: @species.base_stats
-                                )
-      end
-
       def stage_multipliers(stat)
         case stat
         when :evasion, :accuracy
-          PokemonStat::STAGE_MULTIPLIERS_ACC_EVA
+          STAGE_MULTIPLIERS_ACC_EVA
         when :critical_hit
-          PokemonStat::STAGE_MULTIPLIERS_CRITICAL_HIT
+          STAGE_MULTIPLIERS_CRITICAL_HIT
         else
-          PokemonStat::STAGE_MULTIPLIERS
+          STAGE_MULTIPLIERS
         end
       end
     end

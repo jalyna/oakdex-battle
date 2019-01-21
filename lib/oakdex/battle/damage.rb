@@ -69,9 +69,8 @@ module Oakdex
       end
 
       def type_modifier
-        type_data = Oakdex::Pokedex::Type.find!(move.type)
         target.types.reduce(1.0) do |factor, type|
-          factor * type_data.effectivness[type]
+          factor * move.type.effectivness[type]
         end
       end
 

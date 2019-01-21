@@ -63,10 +63,7 @@ module Oakdex
       end
 
       def struggle_move
-        @struggle_move ||= begin
-          move_type = Oakdex::Pokedex::Move.find('Struggle')
-          Oakdex::Battle::Move.new(move_type, move_type.pp, move_type.pp)
-        end
+        @struggle_move ||= Oakdex::Pokemon::Move.create('Struggle')
       end
 
       def available_targets(move)

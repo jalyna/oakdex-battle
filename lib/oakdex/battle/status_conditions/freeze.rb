@@ -13,7 +13,7 @@ module Oakdex
         end
 
         def after_received_damage(move_execution)
-          return unless move_execution.move.type == 'fire'
+          return unless move_execution.move.type_id == 'fire'
           defrost(move_execution.battle)
         end
 
