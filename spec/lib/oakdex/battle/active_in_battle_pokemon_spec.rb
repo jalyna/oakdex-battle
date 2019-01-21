@@ -4,11 +4,10 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
   let(:actions) { [] }
   let(:hp_zero) { false }
   let(:pokemon_per_side) { 1 }
-  let(:current_hp) { double(:current_hp, zero?: hp_zero) }
   let(:moves_with_pp) { double(:moves_with_pp) }
   let(:pokemon) do
     double(:pokemon,
-           current_hp: current_hp,
+           fainted?: hp_zero,
            moves_with_pp: moves_with_pp)
   end
   let(:side) { double(:side1, battle: battle) }
@@ -40,21 +39,12 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
     end
   end
 
-  %i[current_hp moves_with_pp].each do |field|
+  %i[fainted? moves_with_pp].each do |field|
     describe "##{field}" do
       it {
         expect(subject.public_send(field))
         .to eq(pokemon.public_send(field))
       }
-    end
-  end
-
-  describe '#fainted?' do
-    it { expect(subject).not_to be_fainted }
-
-    context 'zero hp' do
-      let(:hp_zero) { true }
-      it { expect(subject).to be_fainted }
     end
   end
 

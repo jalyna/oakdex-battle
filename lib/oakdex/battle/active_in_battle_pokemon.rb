@@ -6,7 +6,7 @@ module Oakdex
     class ActiveInBattlePokemon
       extend Forwardable
 
-      def_delegators :@pokemon, :current_hp, :moves_with_pp, :fainted?
+      def_delegators :@pokemon, :moves_with_pp, :fainted?
       def_delegators :@side, :battle
 
       attr_reader :pokemon, :position, :side
