@@ -3,8 +3,8 @@ require 'oakdex/battle/status_conditions'
 
 module Oakdex
   class Battle
-    # Represents detailed battle pokemon instance
-    class Pokemon
+    # Represents detailed pokemon instance that is part of a Trainer's Team
+    class InBattlePokemon
       extend Forwardable
 
       OTHER_STATS = %i[accuracy evasion critical_hit]

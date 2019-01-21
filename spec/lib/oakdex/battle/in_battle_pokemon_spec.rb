@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Oakdex::Battle::Pokemon do
+describe Oakdex::Battle::InBattlePokemon do
   let(:species) { Oakdex::Pokedex::Pokemon.find('Pikachu') }
   let(:iv) do
     {

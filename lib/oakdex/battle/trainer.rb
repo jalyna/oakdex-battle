@@ -4,10 +4,10 @@ module Oakdex
     class Trainer
       attr_reader :name, :team, :active_in_battle_pokemon
 
-      def initialize(name, team)
+      def initialize(name, pokemon)
         @name = name
-        team.each { |p| p.trainer = self }
-        @team = team
+        pokemon.each { |p| p.trainer = self }
+        @team = pokemon.map { |p| Oakdex::Battle::InBattlePokemon.new(p) }
         @active_in_battle_pokemon = []
       end
 
