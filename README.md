@@ -41,8 +41,8 @@ pok2 = Oakdex::Pokemon.create('Bulbasaur', {
   ]
 })
 
-trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1])
-trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2])
+trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1], ['Potion', 'Elixir', 'Ether'])
+trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2], ['Potion', 'Potion', 'Revive', 'Soda Pop'])
 
 battle = Oakdex::Battle.new(trainer1, trainer2)
 battle.continue # => true

@@ -2,17 +2,23 @@ module Oakdex
   class Battle
     # Represents a Pokemon Trainer. Owns Pokemon and has a name
     class Trainer
-      attr_reader :name, :team, :active_in_battle_pokemon
+      attr_reader :name, :team, :active_in_battle_pokemon, :items
 
-      def initialize(name, pokemon)
+      def initialize(name, pokemon, items = [])
         @name = name
         pokemon.each { |p| p.trainer = self }
         @team = pokemon.map { |p| Oakdex::Battle::InBattlePokemon.new(p) }
         @active_in_battle_pokemon = []
+        @items = items
       end
 
       def fainted?
         @team.all?(&:fainted?)
+      end
+
+      def consume_item(item_id)
+        first_index = @items.index(item_id)
+        @items.delete_at(first_index)
       end
 
       def send_to_battle(pokemon, side)

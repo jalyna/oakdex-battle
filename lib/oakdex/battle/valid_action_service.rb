@@ -15,13 +15,49 @@ module Oakdex
       def valid_actions_for(trainer)
         return [] if sides.empty?
         return [] if no_battle_pokemon?(trainer) && own_battle_pokemon?(trainer)
-        valid_move_actions_for(trainer) + valid_recall_actions_for(trainer)
+        valid_move_actions_for(trainer) +
+          valid_recall_actions_for(trainer) +
+          valid_item_actions_for(trainer)
       end
 
       private
 
       def valid_move_actions_for(trainer)
         trainer.active_in_battle_pokemon.flat_map(&:valid_move_actions)
+      end
+
+      def valid_item_actions_for(trainer)
+        return [] if actions.select { |a| a.trainer == trainer }.size >= pokemon_per_trainer
+        trainer.items.flat_map do |item_id|
+          trainer.team.flat_map.with_index do |pokemon, i|
+            next if actions.any? { |a| a.item_id == item_id }
+            next unless pokemon.usable_item?(item_id, in_battle: true)
+            possible_item_actions(pokemon, item_id).map do |item_actions|
+              {
+                action: 'use_item_on_pokemon',
+                pokemon_team_pos: i,
+                item_id: item_id,
+                item_actions: item_actions
+              }
+            end
+          end.compact
+        end - actions
+      end
+
+      def possible_item_actions(battle_pokemon, item_id, prevActions = [])
+        dup_pokemon = battle_pokemon.pokemon.dup
+        dup_pokemon.use_item(item_id, in_battle: true)
+        e = dup_pokemon.growth_event
+        return [[]] if !e || e.read_only?
+        prevActions.each do |a|
+          e.execute(a)
+          e = dup_pokemon.growth_event
+        end
+        return [prevActions] if e.read_only?
+        e.possible_actions.flat_map do |a|
+          r = possible_item_actions(battle_pokemon, item_id, prevActions + [a])
+          r
+        end
       end
 
       def valid_recall_actions_for(trainer)

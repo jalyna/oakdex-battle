@@ -18,6 +18,7 @@ describe Oakdex::Battle::Trainer do
            fainted?: current_hp2 == 0)
   end
   let(:team) { [pokemon1, pokemon2] }
+  let(:items) { ['Potion', 'Potion', 'Calcium'] }
   let(:side) { double(:side) }
   let(:fainted) { false }
   let(:battle) { double(:battle) }
@@ -32,7 +33,7 @@ describe Oakdex::Battle::Trainer do
     allow(Oakdex::Battle::InBattlePokemon).to receive(:new).with(pok2).and_return(pokemon2)
   end
 
-  subject { described_class.new(name, [pok1, pok2]) }
+  subject { described_class.new(name, [pok1, pok2], items) }
 
   describe '#name' do
     it { expect(subject.name).to eq(name) }
@@ -40,6 +41,17 @@ describe Oakdex::Battle::Trainer do
 
   describe '#team' do
     it { expect(subject.team).to eq(team) }
+  end
+
+  describe '#items' do
+    it { expect(subject.items).to eq(items) }
+  end
+
+  describe '#consume_item' do
+    it 'deletes first occurence' do
+      subject.consume_item('Potion')
+      expect(subject.items).to eq(['Potion', 'Calcium'])
+    end
   end
 
   describe '#active_in_battle_pokemon' do
