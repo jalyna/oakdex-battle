@@ -4,7 +4,8 @@ module Oakdex
   class Battle
     # Represents one Action. One turn has many actions.
     class Action
-      RECALL_PRIORITY = 6
+      RECALL_PRIORITY = 7
+      ITEM_PRIORITY = 6
 
       extend Forwardable
 
@@ -18,10 +19,11 @@ module Oakdex
       end
 
       def priority
-        move&.priority || RECALL_PRIORITY
+        move&.priority || (recall? ? RECALL_PRIORITY : ITEM_PRIORITY)
       end
 
       def pokemon
+        return pokemon_by_team_position if item?
         recall? ? pokemon_by_position : @attributes[:pokemon]
       end
 
@@ -52,8 +54,13 @@ module Oakdex
 
       def execute(turn)
         @turn = turn
-        return execute_recall if type == 'recall'
+        return execute_recall if recall?
+        return execute_use_item if item?
         targets.each { |t| MoveExecution.new(self, t).execute }
+      end
+
+      def item_id
+        @attributes[:item_id]
       end
 
       private
@@ -66,7 +73,7 @@ module Oakdex
 
       def target_list
         list = @attributes[:target]
-        reutrn [] if list.empty?
+        return [] if (list || []).empty?
         list = [list] unless list[0].is_a?(Array)
         list
       end
@@ -75,9 +82,17 @@ module Oakdex
         type == 'recall'
       end
 
+      def item?
+        type == 'use_item_on_pokemon'
+      end
+
       def pokemon_by_position
         trainer.active_in_battle_pokemon
           .find { |ibp| ibp.position == @attributes[:pokemon] }&.pokemon
+      end
+
+      def pokemon_by_team_position
+        trainer.team[@attributes[:pokemon_team_pos]]
       end
 
       def target_by_position(side, position)
@@ -96,6 +111,28 @@ module Oakdex
           trainer.send_to_battle(target, side)
         else
           trainer.send_to_battle(target, side)
+        end
+      end
+
+      def item_actions
+        @attributes[:item_actions]
+      end
+
+      def execute_use_item
+        add_log 'uses_item_on_pokemon', trainer.name, pokemon.name, item_id
+        consumed = pokemon.use_item(item_id, in_battle: true)
+        trainer.consume_item(item_id) if consumed
+        action_id = 0
+        while pokemon.growth_event? do
+          event = pokemon.growth_event
+          if event.read_only?
+            add_log trainer.name, pokemon.name, event.message
+            event.execute
+          else
+            raise 'Invalid Item Usage' unless item_actions[action_id]
+            event.execute(item_actions[action_id])
+            action_id += 1
+          end
         end
       end
 

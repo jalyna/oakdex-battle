@@ -59,9 +59,10 @@ module Oakdex
 
       def_delegators :@pokemon, :types, :trainer, :trainer=,
                      :name, :moves, :moves_with_pp, :change_hp_by,
-                     :change_pp_by, :level, :fainted?
+                     :change_pp_by, :level, :fainted?, :usable_item?,
+                     :use_item, :growth_event?, :growth_event
 
-      attr_reader :status_conditions
+      attr_reader :status_conditions, :pokemon
 
       def initialize(pokemon, options = {})
         @pokemon = pokemon

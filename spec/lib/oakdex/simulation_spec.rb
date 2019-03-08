@@ -39,11 +39,17 @@ describe 'Battle simulation' do
   let(:pokemon8) do
     Oakdex::Pokemon.create('Spearow', level: 3)
   end
+  let(:items2) do
+    ['Potion', 'Elixir', 'Ether']
+  end
+  let(:items1) do
+    ['Potion', 'Potion', 'Revive', 'Soda Pop', 'Ether']
+  end
   let(:trainer1) do
-    Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2])
+    Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2], items1)
   end
   let(:trainer2) do
-    Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4])
+    Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4], items2)
   end
   let(:team1) { [trainer1] }
   let(:team2) { [trainer2] }
@@ -76,11 +82,11 @@ describe 'Battle simulation' do
     context '2 vs. 2' do
       let(:trainer1) do
         Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2,
-                                            pokemon5, pokemon6])
+                                            pokemon5, pokemon6], items1)
       end
       let(:trainer2) do
         Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4,
-                                              pokemon7, pokemon8])
+                                              pokemon7, pokemon8], items2)
       end
       let(:battle) { Oakdex::Battle.new(team1, team2, pokemon_per_side: 2) }
 
@@ -108,11 +114,11 @@ describe 'Battle simulation' do
     context '3 vs. 3' do
       let(:trainer1) do
         Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2,
-                                            pokemon5, pokemon6])
+                                            pokemon5, pokemon6], items1)
       end
       let(:trainer2) do
         Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4,
-                                              pokemon7, pokemon8])
+                                              pokemon7, pokemon8], items2)
       end
       let(:battle) { Oakdex::Battle.new(team1, team2, pokemon_per_side: 3) }
 
@@ -145,10 +151,10 @@ describe 'Battle simulation' do
 
   context '2 vs. 2 with two trainers on each side' do
     let(:trainer3) do
-      Oakdex::Battle::Trainer.new('Brock', [pokemon5, pokemon6])
+      Oakdex::Battle::Trainer.new('Brock', [pokemon5, pokemon6], items1)
     end
     let(:trainer4) do
-      Oakdex::Battle::Trainer.new('Erika', [pokemon7, pokemon8])
+      Oakdex::Battle::Trainer.new('Erika', [pokemon7, pokemon8], items2)
     end
     let(:team1) { [trainer1, trainer3] }
     let(:team2) { [trainer2, trainer4] }

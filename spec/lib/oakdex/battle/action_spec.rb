@@ -22,8 +22,10 @@ describe Oakdex::Battle::Action do
     double(:trainer,
            name: 'Trainer2')
   end
+  let(:team_pokemon1) { double(:team_pokemon1, name: 'TeamPokemon1') }
   let(:trainer1) do
     double(:trainer,
+           team: [team_pokemon1],
            active_in_battle_pokemon: active_in_battle_pokemon_list1,
            name: 'Trainer1')
   end
@@ -55,6 +57,15 @@ describe Oakdex::Battle::Action do
       target: pokemon2
     }
   end
+  let(:item_next_actions) { [] }
+  let(:use_item_on_pokemon_attributes) do
+    {
+      action: 'use_item_on_pokemon',
+      pokemon_team_pos: 0,
+      item_id: 'Potion',
+      item_actions: item_next_actions
+    }
+  end
   let(:attributes) { move_attributes }
   subject { described_class.new(trainer1, attributes) }
 
@@ -65,6 +76,13 @@ describe Oakdex::Battle::Action do
 
     context 'recall action' do
       let(:attributes) { recall_attributes }
+      it 'returns 7' do
+        expect(subject.priority).to eq(7)
+      end
+    end
+
+    context 'use_item_on_pokemon action' do
+      let(:attributes) { use_item_on_pokemon_attributes }
       it 'returns 6' do
         expect(subject.priority).to eq(6)
       end
@@ -82,6 +100,11 @@ describe Oakdex::Battle::Action do
         let(:active_in_battle_pokemon_list1) { [] }
         it { expect(subject.pokemon).to be_nil }
       end
+    end
+
+    context 'use_item_on_pokemon action' do
+      let(:attributes) { use_item_on_pokemon_attributes }
+      it { expect(subject.pokemon).to eq(team_pokemon1) }
     end
   end
 
@@ -157,6 +180,50 @@ describe Oakdex::Battle::Action do
         expect(move_execution).to receive(:execute)
         expect(move_execution2).to receive(:execute)
         subject.execute(turn)
+      end
+    end
+
+    context 'use_item_on_pokemon action' do
+      let(:attributes) { use_item_on_pokemon_attributes }
+      let(:consumed) { true }
+      let(:growth_event) do
+        double(:growth_event, read_only?: true, execute: nil, message: 'foobar')
+      end
+
+      before do
+        expect(team_pokemon1).to receive(:use_item)
+          .with('Potion', in_battle: true)
+          .and_return(consumed)
+        allow(trainer1).to receive(:consume_item).with('Potion')
+        allow(team_pokemon1).to receive(:growth_event?).and_return(true, false)
+        allow(team_pokemon1).to receive(:growth_event).and_return(growth_event)
+      end
+
+      it 'adds log' do
+        expect(battle).to receive(:add_to_log)
+          .with('uses_item_on_pokemon', trainer1.name, team_pokemon1.name, 'Potion')
+        expect(battle).to receive(:add_to_log)
+          .with(trainer1.name, team_pokemon1.name, 'foobar')
+        subject.execute(turn)
+      end
+
+      it 'executes growth event' do
+        expect(growth_event).to receive(:execute)
+        subject.execute(turn)
+      end
+
+      context 'when not read only' do
+        before do
+          allow(team_pokemon1).to receive(:growth_event?).and_return(true, true, false)
+          allow(growth_event).to receive(:read_only?).and_return(false, true)
+        end
+        let(:item_next_actions) { ['my_action'] }
+
+        it 'executes growth event' do
+          expect(growth_event).to receive(:execute).with('my_action')
+          expect(growth_event).to receive(:execute).with(no_args)
+          subject.execute(turn)
+        end
       end
     end
 
