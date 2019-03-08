@@ -12,4 +12,5 @@ Gem::Specification.new do |s|
   s.homepage    = 'http://github.com/jalyna/oakdex-battle'
   s.license     = 'MIT'
   s.add_runtime_dependency 'oakdex-pokemon', '>= 0.0.11'
+  s.add_runtime_dependency 'oakdex-pokedex', '>= 0.4.5'
 end
