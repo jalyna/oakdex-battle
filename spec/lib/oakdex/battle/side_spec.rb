@@ -15,6 +15,11 @@ describe Oakdex::Battle::Side do
   let(:trainers) { [trainer1, trainer2] }
   subject { described_class.new(battle, trainers) }
 
+  before do
+    allow(trainer1).to receive(:side=)
+    allow(trainer2).to receive(:side=)
+  end
+
   describe '#next_position' do
     let(:active_in_battle_pokemon1) { double(:active_in_battle_pokemon, position: 0) }
     let(:active_in_battle_pokemon_list1) { [] }

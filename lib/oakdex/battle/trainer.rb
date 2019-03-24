@@ -3,6 +3,7 @@ module Oakdex
     # Represents a Pokemon Trainer. Owns Pokemon and has a name
     class Trainer
       attr_reader :name, :team, :active_in_battle_pokemon, :items
+      attr_accessor :side
 
       def initialize(name, pokemon, items = [], options = {})
         @name = name
@@ -75,32 +76,47 @@ module Oakdex
         return unless @options[:enable_grow]
         active_in_battle_pokemon.each do |ibp|
           next if ibp.fainted?
-          execute_grow_for_pokemon(ibp, defeated_pokemon)
+          execute_grow_for_pokemon(ibp.pokemon, defeated_pokemon)
         end
+        grow_team_pokemon(defeated_pokemon)
       end
 
       private
 
-      def execute_grow_for_pokemon(ibp, defeated_pokemon)
-        ibp.pokemon.grow_from_battle(defeated_pokemon.pokemon.pokemon)
-        execute_read_only_events(ibp)
-        return unless ibp.pokemon.growth_event?
-        add_choice_to_log(ibp)
+      def battle
+        side.battle
       end
 
-      def execute_read_only_events(ibp)
-        while ibp.pokemon.growth_event? && ibp.pokemon.growth_event.read_only?
-          ibp.battle.add_to_log(ibp.pokemon.growth_event.message)
-          ibp.pokemon.growth_event.execute
+      def grow_team_pokemon(defeated_pokemon)
+        return unless @options[:using_exp_share]
+        exclude_pokemon = active_in_battle_pokemon.map(&:pokemon)
+
+        (team - exclude_pokemon).each do |pok|
+          next if pok.fainted?
+          execute_grow_for_pokemon(pok, defeated_pokemon)
         end
       end
 
-      def add_choice_to_log(ibp)
-        ibp.battle.add_to_log(
+      def execute_grow_for_pokemon(bp, defeated_pokemon)
+        bp.grow_from_battle(defeated_pokemon.pokemon.pokemon)
+        execute_read_only_events(bp)
+        return unless bp.growth_event?
+        add_choice_to_log(bp)
+      end
+
+      def execute_read_only_events(bp)
+        while bp.growth_event? && bp.growth_event.read_only?
+          battle.add_to_log(bp.growth_event.message)
+          bp.growth_event.execute
+        end
+      end
+
+      def add_choice_to_log(bp)
+        battle.add_to_log(
           'choice_for',
           name,
-          ibp.pokemon.growth_event.message,
-          ibp.pokemon.growth_event.possible_actions.join(',')
+          bp.growth_event.message,
+          bp.growth_event.possible_actions.join(',')
         )
       end
 

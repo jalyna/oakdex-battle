@@ -49,7 +49,7 @@ describe 'Battle simulation' do
     ['Potion', 'Potion', 'Revive', 'Soda Pop', 'Ether']
   end
   let(:trainer1) do
-    Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2], items1, enable_grow: true)
+    Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2], items1, enable_grow: true, using_exp_share: true)
   end
   let(:trainer2) do
     Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4], items2)

@@ -41,7 +41,7 @@ pok2 = Oakdex::Pokemon.create('Bulbasaur', {
   ]
 })
 
-trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1], ['Potion', 'Elixir', 'Ether'], enable_grow: true) # trainer's pokemon receive exp and ev
+trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1], ['Potion', 'Elixir', 'Ether'], enable_grow: true, using_exp_share: true) # trainer's pokemon receive exp and ev
 trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2], ['Potion', 'Potion', 'Revive', 'Soda Pop'])
 
 battle = Oakdex::Battle.new(trainer1, trainer2)
