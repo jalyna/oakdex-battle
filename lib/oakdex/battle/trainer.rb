@@ -28,10 +28,8 @@ module Oakdex
       def remove_growth_event
         remove_growth_event = growth_event
         return unless remove_growth_event
-        team.each do |pok|
-          next unless pok.growth_event == remove_growth_event
-          pok.remove_growth_event
-        end
+        pokemon = team.find { |p| p.growth_event == remove_growth_event }
+        pokemon.remove_growth_event
       end
 
       def consume_item(item_id)
@@ -77,14 +75,18 @@ module Oakdex
         return unless @options[:enable_grow]
         active_in_battle_pokemon.each do |ibp|
           next if ibp.fainted?
-          ibp.pokemon.grow_from_battle(defeated_pokemon.pokemon.pokemon)
-          execute_read_only_events(ibp)
-          next unless ibp.pokemon.growth_event?
-          add_choice_to_log(ibp)
+          execute_grow_for_pokemon(ibp, defeated_pokemon)
         end
       end
 
       private
+
+      def execute_grow_for_pokemon(ibp, defeated_pokemon)
+        ibp.pokemon.grow_from_battle(defeated_pokemon.pokemon.pokemon)
+        execute_read_only_events(ibp)
+        return unless ibp.pokemon.growth_event?
+        add_choice_to_log(ibp)
+      end
 
       def execute_read_only_events(ibp)
         while ibp.pokemon.growth_event? && ibp.pokemon.growth_event.read_only?

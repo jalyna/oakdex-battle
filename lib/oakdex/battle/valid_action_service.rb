@@ -13,17 +13,9 @@ module Oakdex
       end
 
       def valid_actions_for(trainer)
-        return [] if sides.empty?
+        return [] if has_no_actions_for?(trainer)
         growth_events = growth_event_actions(trainer)
-        unless growth_events.empty?
-          if actions_for_trainer(trainer).empty?
-            return growth_events
-          else
-            return []
-          end
-        end
-        return [] if no_battle_pokemon?(trainer) && own_battle_pokemon?(trainer)
-        return [] if other_is_growing?(trainer)
+        return growth_events unless growth_events.empty?
         valid_move_actions_for(trainer) +
           valid_recall_actions_for(trainer) +
           valid_item_actions_for(trainer)
@@ -33,6 +25,14 @@ module Oakdex
 
       def actions_for_trainer(trainer)
         actions.select { |a| a.trainer == trainer }
+      end
+
+      def has_no_actions_for?(trainer)
+        growth_events = growth_event_actions(trainer)
+        sides.empty? ||
+          (no_battle_pokemon?(trainer) && own_battle_pokemon?(trainer)) ||
+          (other_is_growing?(trainer) && growth_events.empty?) ||
+          (!growth_events.empty? && !actions_for_trainer(trainer).empty?)
       end
 
       def growth_event_actions(trainer)
