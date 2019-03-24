@@ -13,14 +13,58 @@ module Oakdex
       end
 
       def valid_actions_for(trainer)
-        return [] if sides.empty?
-        return [] if no_battle_pokemon?(trainer) && own_battle_pokemon?(trainer)
+        return [] if no_actions_for?(trainer)
+        growth_events = growth_event_actions(trainer)
+        return growth_events unless growth_events.empty?
         valid_move_actions_for(trainer) +
           valid_recall_actions_for(trainer) +
           valid_item_actions_for(trainer)
       end
 
       private
+
+      def actions_for_trainer(trainer)
+        actions.select { |a| a.trainer == trainer }
+      end
+
+      def no_actions_for?(trainer)
+        growth_events = growth_event_actions(trainer)
+        sides.empty? ||
+          (no_battle_pokemon?(trainer) && growth_events.empty?) ||
+          (other_is_growing?(trainer) && growth_events.empty?) ||
+          added_growth_action_already?(trainer)
+      end
+
+      def added_growth_action_already?(trainer)
+        growth_events = growth_event_actions(trainer)
+
+        !growth_events.empty? && !actions_for_trainer(trainer).empty?
+      end
+
+      def growth_event_actions(trainer)
+        while trainer.growth_event? && trainer.growth_event.read_only?
+          @battle.add_to_log(trainer.growth_event.message)
+          trainer.growth_event.execute
+        end
+
+        if trainer.growth_event?
+          trainer.growth_event.possible_actions.map do |option|
+            {
+              action: 'growth_event',
+              option: option
+            }
+          end
+        else
+          []
+        end
+      end
+
+      def other_is_growing?(trainer)
+        other_trainers = sides.flat_map(&:trainers) - [trainer]
+        other_trainers.any? do |t|
+          t.growth_event? && !t.growth_event.read_only?
+        end
+      end
 
       def valid_move_actions_for(trainer)
         trainer.active_in_battle_pokemon.flat_map(&:valid_move_actions)
@@ -106,7 +150,8 @@ module Oakdex
       end
 
       def no_battle_pokemon?(trainer)
-        other_sides(trainer).all? { |s| s.active_in_battle_pokemon.empty? }
+        other_sides(trainer).all? { |s| s.active_in_battle_pokemon.empty? } &&
+          own_battle_pokemon?(trainer)
       end
 
       def own_battle_pokemon?(trainer)

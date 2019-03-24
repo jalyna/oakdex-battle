@@ -41,7 +41,7 @@ pok2 = Oakdex::Pokemon.create('Bulbasaur', {
   ]
 })
 
-trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1], ['Potion', 'Elixir', 'Ether'])
+trainer1 = Oakdex::Battle::Trainer.new('Ash', [pok1], ['Potion', 'Elixir', 'Ether'], enable_grow: true) # trainer's pokemon receive exp and ev
 trainer2 = Oakdex::Battle::Trainer.new('Misty', [pok2], ['Potion', 'Potion', 'Revive', 'Soda Pop'])
 
 battle = Oakdex::Battle.new(trainer1, trainer2)
@@ -52,9 +52,9 @@ battle.arena # => Snapshot of current state as Hash
 battle.finished? # => false
 battle.valid_actions_for(trainer1) # => [{ action: 'move', pokemon: pok1, move: <Move>, target: pok2 }, ...]
 
-battle.add_action(trainer1, { action: 'move', pokemon: pok1, move: <Move>, target: pok2 }) # => false
-
 battle.add_action(trainer1, { action: 'move', pokemon: pok1, move: <Move>, target: pok2 }) # => true
+
+battle.add_action(trainer1, { action: 'move', pokemon: pok1, move: <Move>, target: pok2 }) # => false
 
 battle.valid_actions_for(trainer1) # => []
 battle.continue # => false

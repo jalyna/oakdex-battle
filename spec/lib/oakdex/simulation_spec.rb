@@ -39,6 +39,9 @@ describe 'Battle simulation' do
   let(:pokemon8) do
     Oakdex::Pokemon.create('Spearow', level: 3)
   end
+  let(:pokemon9) do
+    Oakdex::Pokemon.create('Pidgey', level: 3)
+  end
   let(:items2) do
     ['Potion', 'Elixir', 'Ether']
   end
@@ -46,7 +49,7 @@ describe 'Battle simulation' do
     ['Potion', 'Potion', 'Revive', 'Soda Pop', 'Ether']
   end
   let(:trainer1) do
-    Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2], items1)
+    Oakdex::Battle::Trainer.new('Ash', [pokemon1, pokemon2], items1, enable_grow: true)
   end
   let(:trainer2) do
     Oakdex::Battle::Trainer.new('Misty', [pokemon3, pokemon4], items2)
@@ -65,10 +68,7 @@ describe 'Battle simulation' do
             battle.simulate_action(trainer1)
             battle.simulate_action(trainer2)
             battle.continue
-          end
-
-          battle.log.each do |log|
-            puts log.inspect
+            puts battle.log.last.inspect
           end
 
           puts "WINNER: #{battle.winner.map(&:name)}" if battle.winner
@@ -134,10 +134,7 @@ describe 'Battle simulation' do
             battle.simulate_action(trainer2)
             battle.simulate_action(trainer2)
             battle.continue
-          end
-
-          battle.log.each do |log|
-            puts log.inspect
+            puts battle.log.last.inspect
           end
 
           puts "WINNER: #{battle.winner.map(&:name)}" if battle.winner
@@ -154,7 +151,7 @@ describe 'Battle simulation' do
       Oakdex::Battle::Trainer.new('Brock', [pokemon5, pokemon6], items1)
     end
     let(:trainer4) do
-      Oakdex::Battle::Trainer.new('Erika', [pokemon7, pokemon8], items2)
+      Oakdex::Battle::Trainer.new('Erika', [pokemon7, pokemon8, pokemon9], items2)
     end
     let(:team1) { [trainer1, trainer3] }
     let(:team2) { [trainer2, trainer4] }
@@ -169,10 +166,7 @@ describe 'Battle simulation' do
           battle.simulate_action(trainer3)
           battle.simulate_action(trainer4)
           battle.continue
-        end
-
-        battle.log.each do |log|
-          puts log.inspect
+          puts battle.log.last.inspect
         end
 
         puts "WINNER: #{battle.winner.map(&:name)}" if battle.winner

@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Oakdex::Battle do
-  let(:trainer1) { double(:trainer) }
-  let(:trainer2) { double(:trainer) }
+  let(:trainer1) { double(:trainer, growth_event?: false) }
+  let(:trainer2) { double(:trainer, growth_event?: false) }
   let(:options) { {} }
   let(:team1) { [trainer1] }
   let(:team2) { [trainer2] }

@@ -10,11 +10,17 @@ describe Oakdex::Battle::InBattlePokemon do
       sp_atk: 9,
       sp_def: 8,
       speed: 12,
-      primary_status_condition: primary_status_condition
+      primary_status_condition: primary_status_condition,
+      enable_battle_mode: nil
     })
   end
 
   subject { described_class.new(pokemon) }
+
+  it 'enables pokemon battle mode' do
+    expect(pokemon).to receive(:enable_battle_mode)
+    subject
+  end
 
   %w[
     types
@@ -27,6 +33,7 @@ describe Oakdex::Battle::InBattlePokemon do
     change_pp_by
     level
     fainted?
+    grow_from_battle
   ].each do |method|
     describe "##{method}" do
       it 'is forwarded from pokemon' do

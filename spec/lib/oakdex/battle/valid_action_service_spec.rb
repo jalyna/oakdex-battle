@@ -24,12 +24,16 @@ describe Oakdex::Battle::ValidActionService do
   let(:team_pokemon1) { double(:team_pokemon1, pokemon: team_pokemon1_pokemon) }
   let(:team_pokemon2) { double(:team_pokemon2) }
   let(:items) { [] }
+  let(:trainer_growth_event) { nil }
+  let(:trainer2) { double(:trainer2, growth_event?: false) }
   let(:trainer1) do
     double(:trainer,
            active_in_battle_pokemon: active_in_battle_pokemon_list,
            left_pokemon_in_team: left_pokemon_in_team,
            team: [team_pokemon1, team_pokemon2],
-           items: items)
+           items: items,
+           growth_event: trainer_growth_event,
+           growth_event?: !trainer_growth_event.nil?)
   end
   let(:side1) do
     double(:side,
@@ -37,13 +41,17 @@ describe Oakdex::Battle::ValidActionService do
            trainers: [trainer1],
            active_in_battle_pokemon: active_in_battle_pokemon_list)
   end
-  let(:side2) { double(:side, active_in_battle_pokemon: active_in_battle_pokemon_list2) }
+  let(:side2) { double(:side, active_in_battle_pokemon: active_in_battle_pokemon_list2, trainers: [trainer2]) }
   let(:battle) { double(:battle, sides: [side1, side2], actions: actions) }
   subject { described_class.new(battle) }
 
   before do
+    allow(side1).to receive(:trainers).and_return([trainer1])
+    allow(side2).to receive(:trainers).and_return([])
     allow(side1).to receive(:trainer_on_side?).with(trainer1).and_return(true)
     allow(side2).to receive(:trainer_on_side?).with(trainer1).and_return(false)
+    allow(side2).to receive(:trainer_on_side?).with(trainer2).and_return(true)
+    allow(side1).to receive(:trainer_on_side?).with(trainer2).and_return(false)
   end
 
   describe '#valid_actions_for' do
@@ -64,6 +72,51 @@ describe Oakdex::Battle::ValidActionService do
       it 'shows move and recall action' do
         expect(subject.valid_actions_for(trainer1))
           .to eq([valid_move, recall_action])
+      end
+
+      context 'readonly growth event present' do
+        let(:trainer_growth_event) do
+          double(:growth_event, read_only?: true, message: 'foobar')
+        end
+
+        before do
+          allow(trainer1).to receive(:growth_event?).and_return(true, false)
+        end
+
+        it 'shows normal actions and executes readonly growth event' do
+          expect(trainer_growth_event).to receive(:execute)
+          expect(battle).to receive(:add_to_log).with('foobar')
+          expect(subject.valid_actions_for(trainer1))
+            .to eq([valid_move, recall_action])
+        end
+      end
+
+      context 'growth event with actions present' do
+        let(:trainer_growth_event) do
+          double(:growth_event, possible_actions: ['a', 'b'], read_only?: false)
+        end
+
+        it 'shows growth action' do
+          expect(subject.valid_actions_for(trainer1))
+            .to eq([{
+              action: 'growth_event',
+              option: 'a'
+            },
+            {
+              action: 'growth_event',
+              option: 'b'
+            }])
+        end
+
+        context 'growth event was chosen' do
+          let(:action1) { double(:action, type: 'growth_event', option: 'a', trainer: trainer1) }
+          let(:actions) { [action1] }
+          it { expect(subject.valid_actions_for(trainer1)).to be_empty }
+
+          it 'other trainer can not choose any action' do
+            expect(subject.valid_actions_for(trainer2)).to be_empty
+          end
+        end
       end
 
       context 'action added' do

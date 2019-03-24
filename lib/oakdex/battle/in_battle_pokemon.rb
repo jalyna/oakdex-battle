@@ -60,7 +60,7 @@ module Oakdex
       def_delegators :@pokemon, :types, :trainer, :trainer=,
                      :name, :moves, :moves_with_pp, :change_hp_by,
                      :change_pp_by, :level, :fainted?, :usable_item?,
-                     :use_item, :growth_event?, :growth_event
+                     :use_item, :growth_event?, :growth_event, :grow_from_battle
 
       attr_reader :status_conditions, :pokemon
 
@@ -70,6 +70,7 @@ module Oakdex
         if @pokemon.primary_status_condition
           add_status_condition(@pokemon.primary_status_condition)
         end
+        @pokemon.enable_battle_mode
         reset_stats
       end
 

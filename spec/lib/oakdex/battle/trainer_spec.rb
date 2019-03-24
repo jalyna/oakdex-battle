@@ -19,21 +19,25 @@ describe Oakdex::Battle::Trainer do
   end
   let(:team) { [pokemon1, pokemon2] }
   let(:items) { ['Potion', 'Potion', 'Calcium'] }
-  let(:side) { double(:side) }
+  let(:side) { double(:side, next_position: 0, add_to_log: nil) }
+  let(:trainer2) { double(:trainer2) }
+  let(:side2) { double(:side2, next_position: 0, add_to_log: nil, trainers: [trainer2]) }
   let(:fainted) { false }
-  let(:battle) { double(:battle) }
+  let(:battle) { double(:battle, sides: [side, side2]) }
   let(:active_in_battle_pokemon) do
     double(:active_in_battle_pokemon, fainted?: fainted,
                                pokemon: pokemon1,
                                battle: battle)
   end
 
+  let(:options) { {} }
+  subject { described_class.new(name, [pok1, pok2], items, options) }
+
   before do
     allow(Oakdex::Battle::InBattlePokemon).to receive(:new).with(pok1).and_return(pokemon1)
     allow(Oakdex::Battle::InBattlePokemon).to receive(:new).with(pok2).and_return(pokemon2)
+    allow(side).to receive(:trainer_on_side?).with(subject).and_return(true)
   end
-
-  subject { described_class.new(name, [pok1, pok2], items) }
 
   describe '#name' do
     it { expect(subject.name).to eq(name) }
@@ -156,11 +160,15 @@ describe Oakdex::Battle::Trainer do
 
     context 'pokemon fainted' do
       let(:fainted) { true }
+      before do
+        allow(side2).to receive(:trainer_on_side?).with(subject).and_return(false)
+      end
 
       it 'removes fainted' do
         expect(battle).to receive(:add_to_log)
           .with('pokemon_fainted', name, pokemon1.name)
         expect(status_condition).to receive(:after_fainted).with(battle)
+        expect(trainer2).to receive(:grow).with(active_in_battle_pokemon)
         subject.remove_fainted
         expect(subject.active_in_battle_pokemon).to eq([])
       end
@@ -188,6 +196,96 @@ describe Oakdex::Battle::Trainer do
       end
 
       it { expect(subject.left_pokemon_in_team).to eq([pokemon2]) }
+    end
+  end
+
+  describe 'growth events' do
+    let(:growth_event) { nil }
+
+    before do
+      allow(pokemon1).to receive(:growth_event).and_return(growth_event)
+      allow(pokemon1).to receive(:growth_event?).and_return(!growth_event.nil?)
+      allow(pokemon2).to receive(:growth_event).and_return(nil)
+    end
+
+    describe '#growth_event?' do
+      it { expect(subject).not_to be_growth_event }
+
+      context 'with growth event' do
+        let(:growth_event) { double(:growth_event) }
+        it { expect(subject).to be_growth_event }
+      end
+    end
+
+    describe '#growth_event' do
+      it { expect(subject.growth_event).to be_nil }
+
+      context 'with growth event' do
+        let(:growth_event) { double(:growth_event) }
+        it { expect(subject.growth_event).to eq(growth_event) }
+      end
+    end
+
+    describe '#remove_growth_event' do
+      it 'does nothing' do
+        expect(pokemon1).not_to receive(:remove_growth_event)
+        subject.remove_growth_event
+      end
+
+      context 'with growth event' do
+        let(:growth_event) { double(:growth_event) }
+        it 'removes the pokemons growth event' do
+          expect(pokemon1).to receive(:remove_growth_event)
+          subject.remove_growth_event
+        end
+      end
+    end
+  end
+
+  describe '#grow' do
+    let(:defeated_pokemon) { double(:defeated_pokemon) }
+    let(:defeated) { double(:defeated, pokemon: double(:pok, pokemon: defeated_pokemon)) }
+
+    before do
+      subject.send_to_battle(pokemon1, side)
+      allow(side).to receive(:battle).and_return(battle)
+    end
+
+    it 'nothing happens by default' do
+      expect(pokemon1).not_to receive(:grow_from_battle)
+      subject.grow(defeated)
+    end
+
+    context 'when enable_grow' do
+      let(:options) { { enable_grow: true } }
+      let(:read_only) { true }
+      let(:growth_event) do
+        double(:growth_event, read_only?: read_only,
+          message: 'test',
+          possible_actions: ['a', 'b'])
+      end
+
+      it 'pokemon grows' do
+        expect(pokemon1).to receive(:grow_from_battle).with(defeated_pokemon)
+        expect(battle).to receive(:add_to_log).with('test')
+        expect(growth_event).to receive(:execute)
+        allow(pokemon1).to receive(:growth_event?).and_return(true, false)
+        allow(pokemon1).to receive(:growth_event).and_return(growth_event)
+        subject.grow(defeated)
+      end
+
+      context 'not read only' do
+        let(:read_only) { false }
+        it 'pokemon grows' do
+          expect(pokemon1).to receive(:grow_from_battle).with(defeated_pokemon)
+          expect(battle).to receive(:add_to_log)
+            .with('choice_for', subject.name, 'test', 'a,b')
+          expect(growth_event).not_to receive(:execute)
+          allow(pokemon1).to receive(:growth_event?).and_return(true, true, false)
+          allow(pokemon1).to receive(:growth_event).and_return(growth_event)
+          subject.grow(defeated)
+        end
+      end
     end
   end
 end

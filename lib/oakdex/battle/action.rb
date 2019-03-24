@@ -54,6 +54,7 @@ module Oakdex
 
       def execute(turn)
         @turn = turn
+        return execute_growth if growth?
         return execute_recall if recall?
         return execute_use_item if item?
         targets.each { |t| MoveExecution.new(self, t).execute }
@@ -86,6 +87,10 @@ module Oakdex
         type == 'use_item_on_pokemon'
       end
 
+      def growth?
+        type == 'growth_event'
+      end
+
       def pokemon_by_position
         trainer.active_in_battle_pokemon
           .find { |ibp| ibp.position == @attributes[:pokemon] }&.pokemon
@@ -116,6 +121,15 @@ module Oakdex
 
       def item_actions
         @attributes[:item_actions]
+      end
+
+      def execute_growth
+        trainer.growth_event.execute(@attributes[:option])
+        while trainer.growth_event? && trainer.growth_event.read_only?
+          e = trainer.growth_event
+          add_log e.message
+          e.execute
+        end
       end
 
       def execute_use_item
