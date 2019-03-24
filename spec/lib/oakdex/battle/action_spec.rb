@@ -66,6 +66,12 @@ describe Oakdex::Battle::Action do
       item_actions: item_next_actions
     }
   end
+  let(:growth_attributes) do
+    {
+      action: 'growth_event',
+      option: 'a'
+    }
+  end
   let(:attributes) { move_attributes }
   subject { described_class.new(trainer1, attributes) }
 
@@ -179,6 +185,24 @@ describe Oakdex::Battle::Action do
           .with(subject, pokemon4).and_return(move_execution2)
         expect(move_execution).to receive(:execute)
         expect(move_execution2).to receive(:execute)
+        subject.execute(turn)
+      end
+    end
+
+    context 'growth action' do
+      let(:attributes) { growth_attributes }
+      let(:growth_event) { double(:growth_event) }
+      let(:growth_event2) { double(:growth_event2, read_only?: true, message: 'yuppie') }
+
+      before do
+        allow(trainer1).to receive(:growth_event).and_return(growth_event, growth_event2)
+        allow(trainer1).to receive(:growth_event?).and_return(true, false)
+      end
+
+      it 'passes option to growth event and executes it' do
+        expect(growth_event).to receive(:execute).with('a')
+        expect(growth_event2).to receive(:execute)
+        expect(battle).to receive(:add_to_log).with('yuppie')
         subject.execute(turn)
       end
     end
