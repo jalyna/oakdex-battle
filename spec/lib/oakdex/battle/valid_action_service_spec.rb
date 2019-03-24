@@ -29,7 +29,8 @@ describe Oakdex::Battle::ValidActionService do
            active_in_battle_pokemon: active_in_battle_pokemon_list,
            left_pokemon_in_team: left_pokemon_in_team,
            team: [team_pokemon1, team_pokemon2],
-           items: items)
+           items: items,
+           growth_event?: false)
   end
   let(:side1) do
     double(:side,
@@ -42,6 +43,8 @@ describe Oakdex::Battle::ValidActionService do
   subject { described_class.new(battle) }
 
   before do
+    allow(side1).to receive(:trainers).and_return([trainer1])
+    allow(side2).to receive(:trainers).and_return([])
     allow(side1).to receive(:trainer_on_side?).with(trainer1).and_return(true)
     allow(side2).to receive(:trainer_on_side?).with(trainer1).and_return(false)
   end
