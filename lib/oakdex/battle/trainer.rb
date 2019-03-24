@@ -78,25 +78,32 @@ module Oakdex
         active_in_battle_pokemon.each do |ibp|
           next if ibp.fainted?
           ibp.pokemon.grow_from_battle(defeated_pokemon.pokemon.pokemon)
-          while ibp.pokemon.growth_event? && ibp.pokemon.growth_event.read_only?
-            ibp.battle.add_to_log(ibp.pokemon.growth_event.message)
-            ibp.pokemon.growth_event.execute
-          end
-          if ibp.pokemon.growth_event?
-            ibp.battle.add_to_log(
-              'choice_for',
-              name,
-              ibp.pokemon.growth_event.message,
-              ibp.pokemon.growth_event.possible_actions.join(',')
-            )
-          end
+          execute_read_only_events(ibp)
+          next unless ibp.pokemon.growth_event?
+          add_choice_to_log(ibp)
         end
       end
 
       private
 
+      def execute_read_only_events(ibp)
+        while ibp.pokemon.growth_event? && ibp.pokemon.growth_event.read_only?
+          ibp.battle.add_to_log(ibp.pokemon.growth_event.message)
+          ibp.pokemon.growth_event.execute
+        end
+      end
+
+      def add_choice_to_log(ibp)
+        ibp.battle.add_to_log(
+          'choice_for',
+          name,
+          ibp.pokemon.growth_event.message,
+          ibp.pokemon.growth_event.possible_actions.join(',')
+        )
+      end
+
       def other_side_gains(ibp)
-        winner_sides = ibp.battle.sides - ibp.battle.sides.select { |s| s.trainer_on_side?(self) }
+        winner_sides = ibp.battle.sides - side_of_trainer(ibp.battle.sides)
         winner_sides.each do |side|
           side.trainers.each do |trainer|
             trainer.grow(ibp)
@@ -104,10 +111,12 @@ module Oakdex
         end
       end
 
+      def side_of_trainer(sides)
+        sides.select { |s| s.trainer_on_side?(self) }
+      end
+
       def growth_events
-        team.map do |pok|
-          pok.growth_event
-        end.compact
+        team.map(&:growth_event).compact
       end
     end
   end
