@@ -13,6 +13,7 @@ module Oakdex
       def initialize(battle, trainers)
         @battle = battle
         @trainers = trainers
+        @trainers.each { |t| t.side = self }
       end
 
       def next_position

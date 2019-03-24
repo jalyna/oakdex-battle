@@ -37,6 +37,8 @@ describe Oakdex::Battle::Trainer do
     allow(Oakdex::Battle::InBattlePokemon).to receive(:new).with(pok1).and_return(pokemon1)
     allow(Oakdex::Battle::InBattlePokemon).to receive(:new).with(pok2).and_return(pokemon2)
     allow(side).to receive(:trainer_on_side?).with(subject).and_return(true)
+    subject.side = side
+    allow(trainer2).to receive(:side).and_return(side2)
   end
 
   describe '#name' do
@@ -272,6 +274,21 @@ describe Oakdex::Battle::Trainer do
         allow(pokemon1).to receive(:growth_event?).and_return(true, false)
         allow(pokemon1).to receive(:growth_event).and_return(growth_event)
         subject.grow(defeated)
+      end
+
+      context 'with exp share' do
+        let(:options) { { enable_grow: true, using_exp_share: true } }
+
+        it 'team pokemon grows too' do
+          expect(pokemon1).to receive(:grow_from_battle).with(defeated_pokemon)
+          expect(pokemon2).to receive(:grow_from_battle).with(defeated_pokemon)
+          expect(battle).to receive(:add_to_log).with('test')
+          expect(growth_event).to receive(:execute)
+          allow(pokemon1).to receive(:growth_event?).and_return(false)
+          allow(pokemon2).to receive(:growth_event?).and_return(true, false)
+          allow(pokemon2).to receive(:growth_event).and_return(growth_event)
+          subject.grow(defeated)
+        end
       end
 
       context 'not read only' do
