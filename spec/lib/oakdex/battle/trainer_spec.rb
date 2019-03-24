@@ -199,6 +199,49 @@ describe Oakdex::Battle::Trainer do
     end
   end
 
+  describe 'growth events' do
+    let(:growth_event) { nil }
+
+    before do
+      allow(pokemon1).to receive(:growth_event).and_return(growth_event)
+      allow(pokemon1).to receive(:growth_event?).and_return(!growth_event.nil?)
+      allow(pokemon2).to receive(:growth_event).and_return(nil)
+    end
+
+    describe '#growth_event?' do
+      it { expect(subject).not_to be_growth_event }
+
+      context 'with growth event' do
+        let(:growth_event) { double(:growth_event) }
+        it { expect(subject).to be_growth_event }
+      end
+    end
+
+    describe '#growth_event' do
+      it { expect(subject.growth_event).to be_nil }
+
+      context 'with growth event' do
+        let(:growth_event) { double(:growth_event) }
+        it { expect(subject.growth_event).to eq(growth_event) }
+      end
+    end
+
+    describe '#remove_growth_event' do
+      it 'does nothing' do
+        expect(pokemon1).not_to receive(:remove_growth_event)
+        subject.remove_growth_event
+      end
+
+      context 'with growth event' do
+        let(:growth_event) { double(:growth_event) }
+        it 'removes the pokemons growth event' do
+          expect(pokemon1).to receive(:remove_growth_event)
+          subject.remove_growth_event
+        end
+      end
+    end
+  end
+
   describe '#grow' do
     let(:defeated_pokemon) { double(:defeated_pokemon) }
     let(:defeated) { double(:defeated, pokemon: double(:pok, pokemon: defeated_pokemon)) }

@@ -29,9 +29,8 @@ module Oakdex
         remove_growth_event = growth_event
         return unless remove_growth_event
         team.each do |pok|
-          if pok.growth_event == remove_growth_event
-            pok.remove_growth_event
-          end
+          next unless pok.growth_event == remove_growth_event
+          pok.remove_growth_event
         end
       end
 
