@@ -50,8 +50,8 @@ module Oakdex
         if trainer.growth_event?
           trainer.growth_event.possible_actions.map do |option|
             {
-              action: 'growth_event',
-              option: option
+              'action' => 'growth_event',
+              'option' => option
             }
           end
         else
@@ -78,10 +78,10 @@ module Oakdex
             next unless pokemon.usable_item?(item_id, in_battle: true)
             possible_item_actions(pokemon, item_id).map do |item_actions|
               {
-                action: 'use_item_on_pokemon',
-                pokemon_team_pos: i,
-                item_id: item_id,
-                item_actions: item_actions
+                'action' => 'use_item_on_pokemon',
+                'pokemon_team_pos' => i,
+                'item_id' => item_id,
+                'item_actions' => item_actions
               }
             end
           end.compact
@@ -118,9 +118,9 @@ module Oakdex
         return if !recall_action_valid?(trainer, active_ibp, target) ||
                   recall_action_for?(target)
         {
-          action: 'recall',
-          pokemon: active_ibp&.position || side(trainer).next_position,
-          target: target
+          'action' => 'recall',
+          'pokemon' => active_ibp&.position || side(trainer).next_position,
+          'target' => target.id
         }
       end
 
@@ -139,7 +139,7 @@ module Oakdex
 
       def recall_action_for?(target)
         actions.any? do |action|
-          action.type == 'recall' && action.target == target
+          action.type == 'recall' && action.target_id == target.id
         end
       end
 

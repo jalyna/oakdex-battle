@@ -25,14 +25,13 @@ module Oakdex
       @current_log = []
       @actions = []
       @turns = []
+      @sides = [@team1, @team2].map do |team|
+        Side.new(self, team)
+      end
     end
 
     def pokemon_per_side
       @options[:pokemon_per_side] || @team1.size
-    end
-
-    def arena
-      { sides: sides }
     end
 
     def valid_actions_for(trainer)
@@ -52,7 +51,7 @@ module Oakdex
     end
 
     def continue
-      return start if sides.empty?
+      return start if @log.empty?
       return false unless trainers.all? { |t| valid_actions_for(t).empty? }
       execute_actions
       true
@@ -75,6 +74,24 @@ module Oakdex
       sides.each(&:remove_fainted)
     end
 
+    def side_by_id(id)
+      sides.find { |s| s.id == id }
+    end
+
+    def trainers
+      sides.flat_map(&:trainers)
+    end
+
+    def pokemon_by_id(id)
+      trainers.each do |trainer|
+        trainer.team.each do |p|
+          return p if p.id == id
+        end
+      end
+
+      nil
+    end
+
     private
 
     def valid_action_service
@@ -86,9 +103,7 @@ module Oakdex
     end
 
     def start
-      @sides = [@team1, @team2].map do |team|
-        Side.new(self, team).tap(&:send_to_battle)
-      end
+      sides.each(&:send_to_battle)
       finish_turn
       true
     end
@@ -96,10 +111,6 @@ module Oakdex
     def execute_actions
       @turns << Turn.new(self, @actions).tap(&:execute)
       finish_turn
-    end
-
-    def trainers
-      sides.flat_map(&:trainers)
     end
 
     def finish_turn

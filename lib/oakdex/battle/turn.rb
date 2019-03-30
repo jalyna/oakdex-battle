@@ -17,10 +17,11 @@ module Oakdex
       def execute
         execute_status_conditions(:before_turn)
 
+        @actions.each { |a| a.turn = self }
         ordered_actions.each do |action|
           next unless valid_target?(action)
           next if action.pokemon && action.pokemon.fainted?
-          action.execute(self)
+          action.execute
         end
 
         execute_status_conditions(:after_turn)

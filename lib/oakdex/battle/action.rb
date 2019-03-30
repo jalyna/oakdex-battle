@@ -11,7 +11,8 @@ module Oakdex
 
       def_delegators :@turn, :battle
 
-      attr_reader :trainer, :damage, :turn
+      attr_reader :trainer, :damage
+      attr_accessor :turn
 
       def initialize(trainer, attributes)
         @trainer = trainer
@@ -24,23 +25,33 @@ module Oakdex
 
       def pokemon
         return pokemon_by_team_position if item?
-        recall? ? pokemon_by_position : @attributes[:pokemon]
+        recall? ? pokemon_by_position : battle.pokemon_by_id(pokemon_id)
+      end
+
+      def pokemon_id
+        move? ? @attributes['pokemon'] : nil
       end
 
       def pokemon_position
-        recall? ? @attributes[:pokemon] : nil
+        recall? ? @attributes['pokemon'] : nil
       end
 
       def target
-        recall? ? @attributes[:target] : targets
+        recall? ? battle.pokemon_by_id(@attributes['target']) : targets
+      end
+
+      def target_id
+        recall? ? @attributes['target'] : nil
       end
 
       def type
-        @attributes[:action]
+        @attributes['action']
       end
 
       def move
-        @attributes[:move]
+        return unless @attributes['move']
+        @move ||= pokemon.moves.find { |m| m.name == @attributes['move'] }
+        @move ||= Oakdex::Pokemon::Move.create(@attributes['move'])
       end
 
       def hitting_probability
@@ -52,8 +63,7 @@ module Oakdex
         @hitting == 1
       end
 
-      def execute(turn)
-        @turn = turn
+      def execute
         return execute_growth if growth?
         return execute_recall if recall?
         return execute_use_item if item?
@@ -61,19 +71,20 @@ module Oakdex
       end
 
       def item_id
-        @attributes[:item_id]
+        @attributes['item_id']
       end
 
       private
 
       def targets
         target_list.map do |target|
-          target_by_position(target[0], target[1])
+          side = battle.side_by_id(target[0])
+          target_by_position(side, target[1])
         end.compact
       end
 
       def target_list
-        list = @attributes[:target]
+        list = @attributes['target']
         return [] if (list || []).empty?
         list = [list] unless list[0].is_a?(Array)
         list
@@ -81,6 +92,10 @@ module Oakdex
 
       def recall?
         type == 'recall'
+      end
+
+      def move?
+        type == 'move'
       end
 
       def item?
@@ -93,11 +108,11 @@ module Oakdex
 
       def pokemon_by_position
         trainer.active_in_battle_pokemon
-          .find { |ibp| ibp.position == @attributes[:pokemon] }&.pokemon
+          .find { |ibp| ibp.position == @attributes['pokemon'] }&.pokemon
       end
 
       def pokemon_by_team_position
-        trainer.team[@attributes[:pokemon_team_pos]]
+        trainer.team[@attributes['pokemon_team_pos']]
       end
 
       def target_by_position(side, position)
@@ -120,11 +135,11 @@ module Oakdex
       end
 
       def item_actions
-        @attributes[:item_actions]
+        @attributes['item_actions']
       end
 
       def execute_growth
-        trainer.growth_event.execute(@attributes[:option])
+        trainer.growth_event.execute(@attributes['option'])
         while trainer.growth_event? && trainer.growth_event.read_only?
           e = trainer.growth_event
           add_log e.message

@@ -6,7 +6,7 @@ module Oakdex
     class ActiveInBattlePokemon
       extend Forwardable
 
-      def_delegators :@pokemon, :moves_with_pp, :fainted?
+      def_delegators :@pokemon, :moves_with_pp, :fainted?, :id
       def_delegators :@side, :battle
 
       attr_reader :pokemon, :position, :side
@@ -18,7 +18,7 @@ module Oakdex
       end
 
       def action_added?
-        actions.any? { |a| a.pokemon == pokemon }
+        actions.any? { |a| a.pokemon_id == id }
       end
 
       def valid_move_actions
@@ -28,10 +28,10 @@ module Oakdex
         moves.flat_map do |move|
           targets_in_battle(move).map do |target|
             {
-              action: 'move',
-              pokemon: pokemon,
-              move: move,
-              target: target
+              'action' => 'move',
+              'pokemon' => pokemon.id,
+              'move' => move.name,
+              'target' => target
             }
           end
         end
@@ -50,12 +50,16 @@ module Oakdex
       end
 
       def targets_in_battle?(targets)
-        targets.any? { |target| target[0].pokemon_in_battle?(target[1]) }
+        targets.any? do |target|
+          side = battle.side_by_id(target[0])
+          side.pokemon_in_battle?(target[1])
+        end
       end
 
       def target_in_battle?(target)
-        target[0].pokemon_in_battle?(target[1]) ||
-          (!target[0].pokemon_left? && target[1] == 0)
+        side = battle.side_by_id(target[0])
+        side.pokemon_in_battle?(target[1]) ||
+          (!side.pokemon_left? && target[1] == 0)
       end
 
       def struggle_move
@@ -106,30 +110,30 @@ module Oakdex
       end
 
       def self_target
-        [@side, position]
+        [@side.id, position]
       end
 
       def adjacent_foes
         [
-          [other_side, position - 1],
-          [other_side, position],
-          [other_side, position + 1]
+          [other_side.id, position - 1],
+          [other_side.id, position],
+          [other_side.id, position + 1]
         ].select { |t| t[1] >= 0 && t[1] < pokemon_per_side }
       end
 
       def adjacent_users
         [
-          [@side, position - 1],
-          [@side, position + 1]
+          [@side.id, position - 1],
+          [@side.id, position + 1]
         ].select { |t| t[1] >= 0 && t[1] < pokemon_per_side }
       end
 
       def all_users
-        pokemon_per_side.times.map { |i| [@side, i] }
+        pokemon_per_side.times.map { |i| [@side.id, i] }
       end
 
       def all_foes
-        pokemon_per_side.times.map { |i| [other_side, i] }
+        pokemon_per_side.times.map { |i| [other_side.id, i] }
       end
 
       def pokemon_per_side

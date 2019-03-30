@@ -1,5 +1,6 @@
 require 'forwardable'
 require 'oakdex/battle/status_conditions'
+require 'securerandom'
 
 module Oakdex
   class Battle
@@ -113,6 +114,10 @@ module Oakdex
 
       def critical_hit_prob
         stage(:critical_hit)
+      end
+
+      def id
+        @id ||= SecureRandom.uuid
       end
 
       Oakdex::Pokemon::BATTLE_STATS.each do |stat|

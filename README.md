@@ -50,11 +50,11 @@ battle.log.size # => 1
 battle.log.last # => [['sends_to_battle', 'Ash', 'Pikachu'], ['sends_to_battle', 'Misty', 'Bulbasaur']]
 battle.arena # => Snapshot of current state as Hash
 battle.finished? # => false
-battle.valid_actions_for(trainer1) # => [{ action: 'move', pokemon: pok1, move: <Move>, target: pok2 }, ...]
+valid_actions = battle.valid_actions_for(trainer1) # => [{"action"=>"move", "pokemon"=>"eb55b984-f0f0-48e5-9268-5bbf791a0793", "move"=>"Nuzzle", "target"=>["Misty", 0]}, {"action"=>"move", "pokemon"=>"eb55b984-f0f0-48e5-9268-5bbf791a0793", "move"=>"Hypnosis", "target"=>["Misty", 0]}, {"action"=>"recall", "pokemon"=>0, "target"=>"ceea31e4-adfc-4138-a148-424fa08c8f79"}, ...]
 
-battle.add_action(trainer1, { action: 'move', pokemon: pok1, move: <Move>, target: pok2 }) # => true
+battle.add_action(trainer1, valid_actions.first) # => true
 
-battle.add_action(trainer1, { action: 'move', pokemon: pok1, move: <Move>, target: pok2 }) # => false
+battle.add_action(trainer1, invalid_action) # => false
 
 battle.valid_actions_for(trainer1) # => []
 battle.continue # => false

@@ -29,6 +29,8 @@ describe Oakdex::Battle::Turn do
   subject { described_class.new(battle, actions) }
 
   before do
+    allow(action1).to receive(:turn=).with(subject)
+    allow(action2).to receive(:turn=).with(subject)
     allow(battle).to receive(:remove_fainted)
     allow(battle).to receive(:sides).and_return([side1])
     allow(pokemon1).to receive(:status_conditions)
@@ -37,8 +39,8 @@ describe Oakdex::Battle::Turn do
 
   describe '#execute' do
     it 'executes actions' do
-      expect(action1).to receive(:execute).with(subject).ordered
-      expect(action2).to receive(:execute).with(subject).ordered
+      expect(action1).to receive(:execute).ordered
+      expect(action2).to receive(:execute).ordered
       subject.execute
     end
 
@@ -46,8 +48,8 @@ describe Oakdex::Battle::Turn do
       let(:priority1) { 0 }
 
       it 'executes actions' do
-        expect(action1).to receive(:execute).with(subject).ordered
-        expect(action2).to receive(:execute).with(subject).ordered
+        expect(action1).to receive(:execute).ordered
+        expect(action2).to receive(:execute).ordered
         subject.execute
       end
     end
@@ -57,7 +59,7 @@ describe Oakdex::Battle::Turn do
 
       it 'executes actions' do
         expect(action1).not_to receive(:execute)
-        expect(action2).to receive(:execute).with(subject).ordered
+        expect(action2).to receive(:execute).ordered
         subject.execute
       end
     end
@@ -67,7 +69,7 @@ describe Oakdex::Battle::Turn do
 
       it 'executes actions' do
         expect(action1).not_to receive(:execute)
-        expect(action2).to receive(:execute).with(subject).ordered
+        expect(action2).to receive(:execute).ordered
         subject.execute
       end
     end
@@ -76,20 +78,20 @@ describe Oakdex::Battle::Turn do
       let(:status_condition) { double(:status_condition) }
       let(:status_conditions) { [status_condition] }
       before do
-        allow(action1).to receive(:execute).with(subject)
-        allow(action2).to receive(:execute).with(subject)
+        allow(action1).to receive(:execute)
+        allow(action2).to receive(:execute)
       end
 
       it 'executes status_condition on after_turn' do
-        allow(status_condition).to receive(:before_turn).with(subject)
-        expect(status_condition).to receive(:after_turn).with(subject)
+        allow(status_condition).to receive(:before_turn)
+        expect(status_condition).to receive(:after_turn)
         expect(battle).to receive(:remove_fainted)
         subject.execute
       end
 
       it 'executes status_condition on before_turn' do
-        allow(status_condition).to receive(:after_turn).with(subject)
-        expect(status_condition).to receive(:before_turn).with(subject)
+        allow(status_condition).to receive(:after_turn)
+        expect(status_condition).to receive(:before_turn)
         expect(battle).to receive(:remove_fainted)
         subject.execute
       end

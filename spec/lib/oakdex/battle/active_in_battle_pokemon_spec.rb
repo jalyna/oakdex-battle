@@ -8,10 +8,11 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
   let(:pokemon) do
     double(:pokemon,
            fainted?: hp_zero,
+           id: '123',
            moves_with_pp: moves_with_pp)
   end
-  let(:side) { double(:side1, battle: battle) }
-  let(:side2) { double(:side2, battle: battle) }
+  let(:side) { double(:side1, battle: battle, id: 'side1') }
+  let(:side2) { double(:side2, battle: battle, id: 'side2') }
   let(:sides) { [side, side2] }
   let(:battle) { double(:battle, pokemon_per_side: pokemon_per_side) }
   subject { described_class.new(pokemon, side) }
@@ -19,6 +20,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
   before do
     allow(battle).to receive(:sides).and_return(sides)
     allow(battle).to receive(:actions).and_return(actions)
+    allow(battle).to receive(:side_by_id).with(side.id).and_return(side)
+    allow(battle).to receive(:side_by_id).with(side2.id).and_return(side2)
     allow(side2).to receive(:pokemon_in_battle?).with(0).and_return(true)
     allow(side2).to receive(:pokemon_in_battle?).with(1).and_return(true)
     allow(side2).to receive(:pokemon_in_battle?).with(2).and_return(true)
@@ -39,7 +42,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
     end
   end
 
-  %i[fainted? moves_with_pp].each do |field|
+  %i[fainted? moves_with_pp id].each do |field|
     describe "##{field}" do
       it {
         expect(subject.public_send(field))
@@ -49,16 +52,16 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
   end
 
   describe '#action_added?' do
-    let(:pokemon2) { double(:pokemon) }
+    let(:pokemon2) { double(:pokemon, id: 'abc') }
     it { expect(subject).not_to be_action_added }
 
     context 'action exist' do
-      let(:action1) { double(:action, pokemon: pokemon) }
+      let(:action1) { double(:action, pokemon_id: pokemon.id) }
       let(:actions) { [action1] }
       it { expect(subject).to be_action_added }
 
       context 'for other pokemon' do
-        let(:action1) { double(:action, pokemon: pokemon2) }
+        let(:action1) { double(:action, pokemon_id: pokemon2.id) }
         it { expect(subject).not_to be_action_added }
       end
     end
@@ -72,7 +75,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
     let(:pokemon2) { double(:pokemon) }
     let(:active_in_battle_pokemon2) do
       double(:active_in_battle_pokemon, pokemon: pokemon2, side: side2,
-                                 position: 0)
+                                        position: 0)
     end
     let(:active_in_battle_pokemon3) do
       double(:active_in_battle_pokemon, side: side2, position: 1)
@@ -103,10 +106,10 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
     it 'returns all moves that have enough pp' do
       expect(subject.valid_move_actions).to eq([
                                                  {
-                                                   action: 'move',
-                                                   pokemon: pokemon,
-                                                   move: move1,
-                                                   target: [side2, 0]
+                                                   'action' => 'move',
+                                                   'pokemon' => pokemon.id,
+                                                   'move' => move1.name,
+                                                   'target' => [side2.id, 0]
                                                  }
                                                ])
     end
@@ -123,16 +126,16 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
       end
 
       it 'returns targets' do
-        expect(subject.valid_move_actions.map { |m| m[:target] })
-          .to eq([[side2, 0], [side2, 1], [side, 1]])
+        expect(subject.valid_move_actions.map { |m| m['target'] })
+          .to eq([[side2.id, 0], [side2.id, 1], [side.id, 1]])
       end
 
       context 'target_adjacent_user_single' do
         let(:target) { 'target_adjacent_user_single' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 1]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[side.id, 1]])
         end
       end
 
@@ -140,8 +143,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'target_user_or_adjacent_user' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 0], [side, 1]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[side.id, 0], [side.id, 1]])
         end
       end
 
@@ -149,8 +152,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'user' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 0]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[side.id, 0]])
         end
       end
 
@@ -158,8 +161,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'user_and_random_adjacent_foe' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side, 0]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[side.id, 0]])
         end
       end
 
@@ -167,8 +170,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_users' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side, 0], [side, 1], [side, 2]]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[[side.id, 0], [side.id, 1], [side.id, 2]]])
         end
       end
 
@@ -176,8 +179,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_adjacent' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side, 1]]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[[side2.id, 0], [side2.id, 1], [side.id, 1]]])
         end
       end
 
@@ -185,8 +188,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'adjacent_foes_all' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1]]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[[side2.id, 0], [side2.id, 1]]])
         end
       end
 
@@ -194,8 +197,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_foes' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side2, 2]]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2]]])
         end
       end
 
@@ -203,8 +206,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_except_user' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 1], [side, 2]]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 1], [side.id, 2]]])
         end
       end
 
@@ -212,9 +215,9 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
-                     [side, 1], [side, 2]]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 0],
+                     [side.id, 1], [side.id, 2]]])
         end
       end
 
@@ -226,17 +229,17 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         end
 
         it 'returns available targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
-            .to eq([[side2, 0], [side, 1]])
+          expect(subject.valid_move_actions.map { |m| m['target'] })
+            .to eq([[side2.id, 0], [side.id, 1]])
         end
 
         context 'all' do
           let(:target) { 'all' }
 
           it 'returns targets' do
-            expect(subject.valid_move_actions.map { |m| m[:target] })
-              .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
-                       [side, 1], [side, 2]]])
+            expect(subject.valid_move_actions.map { |m| m['target'] })
+              .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 0],
+                       [side.id, 1], [side.id, 2]]])
           end
         end
 
@@ -248,17 +251,17 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
           end
 
           it 'returns available targets' do
-            expect(subject.valid_move_actions.map { |m| m[:target] })
-              .to eq([[side2, 0], [side, 1]])
+            expect(subject.valid_move_actions.map { |m| m['target'] })
+              .to eq([[side2.id, 0], [side.id, 1]])
           end
 
           context 'all' do
             let(:target) { 'all' }
 
             it 'returns targets' do
-              expect(subject.valid_move_actions.map { |m| m[:target] })
-                .to eq([[[side2, 0], [side2, 1], [side2, 2], [side, 0],
-                         [side, 1], [side, 2]]])
+              expect(subject.valid_move_actions.map { |m| m['target'] })
+                .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 0],
+                         [side.id, 1], [side.id, 2]]])
             end
           end
 
@@ -266,7 +269,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
             let(:target) { 'all_foes' }
 
             it 'returns targets' do
-              expect(subject.valid_move_actions.map { |m| m[:target] })
+              expect(subject.valid_move_actions.map { |m| m['target'] })
                 .to be_empty
             end
           end
@@ -278,7 +281,8 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
       let(:moves_with_pp) { [] }
       let(:struggle_move) do
         double(:struggle_move,
-               target: 'target_adjacent_single')
+               target: 'target_adjacent_single',
+               name: 'Struggle')
       end
       before do
         allow(Oakdex::Pokemon::Move).to receive(:new)
@@ -288,10 +292,10 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
       it 'returns struggle' do
         expect(subject.valid_move_actions).to eq([
                                                    {
-                                                     action: 'move',
-                                                     pokemon: pokemon,
-                                                     move: struggle_move,
-                                                     target: [side2, 0]
+                                                     'action' => 'move',
+                                                     'pokemon' => pokemon.id,
+                                                     'move' => struggle_move.name,
+                                                     'target' => [side2.id, 0]
                                                    }
                                                  ])
       end

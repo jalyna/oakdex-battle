@@ -60,11 +60,12 @@ describe 'Battle simulation' do
 
   context '1 Trainer vs. 1 Trainer' do
     context '1 vs. 1' do
-      5.times do |i|
+      1.times do |i|
         it "executes battle simulation #{i}" do
           battle.continue
 
           until battle.finished?
+            puts "UUU #{battle.valid_actions_for(trainer1)}"
             battle.simulate_action(trainer1)
             battle.simulate_action(trainer2)
             battle.continue

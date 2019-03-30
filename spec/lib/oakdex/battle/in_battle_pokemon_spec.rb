@@ -3,16 +3,16 @@ require 'spec_helper'
 describe Oakdex::Battle::InBattlePokemon do
   let(:primary_status_condition) { nil }
   let(:pokemon) do
-    double(:pokemon, {
-      hp: 17,
-      atk: 9,
-      def: 7,
-      sp_atk: 9,
-      sp_def: 8,
-      speed: 12,
-      primary_status_condition: primary_status_condition,
-      enable_battle_mode: nil
-    })
+    double(:pokemon,
+           hp: 17,
+           atk: 9,
+           def: 7,
+           sp_atk: 9,
+           sp_def: 8,
+           speed: 12,
+           primary_status_condition: primary_status_condition,
+           enable_battle_mode: nil
+          )
   end
 
   subject { described_class.new(pokemon) }
@@ -54,6 +54,14 @@ describe Oakdex::Battle::InBattlePokemon do
 
   describe '#critical_hit_prob' do
     it { expect(subject.critical_hit_prob).to eq(Rational(1, 24)) }
+  end
+
+  describe '#id' do
+    before do
+      allow(SecureRandom).to receive(:uuid).and_return('random_id')
+    end
+
+    it { expect(subject.id).to eq('random_id') }
   end
 
   describe '#hp' do
