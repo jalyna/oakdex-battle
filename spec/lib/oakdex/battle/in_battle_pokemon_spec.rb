@@ -56,6 +56,14 @@ describe Oakdex::Battle::InBattlePokemon do
     it { expect(subject.critical_hit_prob).to eq(Rational(1, 24)) }
   end
 
+  describe '#id' do
+    before do
+      allow(SecureRandom).to receive(:uuid).and_return('random_id')
+    end
+
+    it { expect(subject.id).to eq('random_id') }
+  end
+
   describe '#hp' do
     it { expect(subject.hp).to eq(17) }
   end

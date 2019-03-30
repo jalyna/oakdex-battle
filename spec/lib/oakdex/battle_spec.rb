@@ -1,8 +1,11 @@
 require 'spec_helper'
 
 describe Oakdex::Battle do
-  let(:trainer1) { double(:trainer, growth_event?: false) }
-  let(:trainer2) { double(:trainer, growth_event?: false) }
+  let(:pok1) { double(:pokemon, id: 'ab') }
+  let(:pok2) { double(:pokemon, id: 'cd') }
+  let(:trainer1) { double(:trainer, growth_event?: false, name: 'Trainer1', team: [pok1]) }
+  let(:trainer2) { double(:trainer, growth_event?: false, name: 'Trainer2', team: [pok2]) }
+  let(:trainer3) { double(:trainer) }
   let(:options) { {} }
   let(:team1) { [trainer1] }
   let(:team2) { [trainer2] }
@@ -10,17 +13,23 @@ describe Oakdex::Battle do
   let(:valid_action) { double(:valid_action) }
   let(:valid_actions) { [valid_action] }
   let(:valid_action_service) { double(:valid_action_service) }
-  subject { described_class.new(team1, team2, options) }
 
   before do
+    allow(trainer1).to receive(:side=)
+    allow(trainer2).to receive(:side=)
+    allow(trainer3).to receive(:side=)
     allow(Oakdex::Battle::ValidActionService).to receive(:new)
       .with(subject).and_return(valid_action_service)
     allow(valid_action_service).to receive(:valid_actions_for)
       .with(trainer1).and_return(valid_actions)
   end
 
-  describe '#arena' do
-    it { expect(subject.arena).to eq(sides: []) }
+  subject { described_class.new(team1, team2, options) }
+
+  describe '#sides' do
+    it { expect(subject.sides.size).to eq(2) }
+    it { expect(subject.sides.first.trainers).to eq([trainer1]) }
+    it { expect(subject.sides.last.trainers).to eq([trainer2]) }
   end
 
   describe '#pokemon_per_side' do
@@ -32,7 +41,6 @@ describe Oakdex::Battle do
     end
 
     context 'more trainers per team' do
-      let(:trainer3) { double(:trainer) }
       let(:team1) { [trainer1, trainer3] }
       it { expect(subject.pokemon_per_side).to eq(2) }
     end
@@ -40,6 +48,22 @@ describe Oakdex::Battle do
 
   describe '#valid_actions_for' do
     it { expect(subject.valid_actions_for(trainer1)).to eq(valid_actions) }
+  end
+
+  describe '#side_by_id' do
+    it { expect(subject.side_by_id('Trainer1')).to eq(subject.sides.first) }
+    it { expect(subject.side_by_id('Trainer2')).to eq(subject.sides.last) }
+    it { expect(subject.side_by_id('foo')).to be_nil }
+  end
+
+  describe '#pokemon_by_id' do
+    it { expect(subject.pokemon_by_id(pok1.id)).to eq(pok1) }
+    it { expect(subject.pokemon_by_id(pok2.id)).to eq(pok2) }
+    it { expect(subject.pokemon_by_id('foobar')).to be_nil }
+  end
+
+  describe '#trainers' do
+    it { expect(subject.trainers).to eq([trainer1, trainer2]) }
   end
 
   describe '#add_action' do
@@ -147,15 +171,11 @@ describe Oakdex::Battle do
     let(:action2) { double(:action) }
     let(:valid_actions1) { [action1] }
     let(:valid_actions2) { [action2] }
-    let(:sides) { [] }
+    let(:sides) { [side1, side2] }
     let(:turn) { double(:turn) }
 
     before do
       allow(subject).to receive(:sides).and_return(sides)
-      allow(Oakdex::Battle::Side).to receive(:new)
-        .with(subject, team1).and_return(side1)
-      allow(Oakdex::Battle::Side).to receive(:new)
-        .with(subject, team2).and_return(side2)
       allow(subject).to receive(:valid_actions_for).with(trainer1)
         .and_return(valid_actions1)
       allow(subject).to receive(:valid_actions_for).with(trainer2)
@@ -171,8 +191,12 @@ describe Oakdex::Battle do
       expect(subject.log).to eq([[]])
     end
 
-    context 'sides set' do
-      let(:sides) { [side1, side2] }
+    context 'battle started' do
+      before do
+        allow(side1).to receive(:send_to_battle)
+        allow(side2).to receive(:send_to_battle)
+        subject.continue
+      end
 
       it 'does not continue' do
         expect(subject.continue).to be(false)
@@ -185,7 +209,7 @@ describe Oakdex::Battle do
         it 'continues' do
           expect(turn).to receive(:execute)
           expect(subject.continue).to be(true)
-          expect(subject.log).to eq([[]])
+          expect(subject.log).to eq([[], []])
         end
       end
     end

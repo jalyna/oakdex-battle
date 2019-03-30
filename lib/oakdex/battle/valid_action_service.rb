@@ -120,7 +120,7 @@ module Oakdex
         {
           action: 'recall',
           pokemon: active_ibp&.position || side(trainer).next_position,
-          target: target
+          target: target.id
         }
       end
 
@@ -139,7 +139,7 @@ module Oakdex
 
       def recall_action_for?(target)
         actions.any? do |action|
-          action.type == 'recall' && action.target == target
+          action.type == 'recall' && action.target_id == target.id
         end
       end
 

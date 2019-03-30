@@ -11,7 +11,8 @@ module Oakdex
 
       def_delegators :@turn, :battle
 
-      attr_reader :trainer, :damage, :turn
+      attr_reader :trainer, :damage
+      attr_accessor :turn
 
       def initialize(trainer, attributes)
         @trainer = trainer
@@ -24,7 +25,11 @@ module Oakdex
 
       def pokemon
         return pokemon_by_team_position if item?
-        recall? ? pokemon_by_position : @attributes[:pokemon]
+        recall? ? pokemon_by_position : battle.pokemon_by_id(pokemon_id)
+      end
+
+      def pokemon_id
+        move? ? @attributes[:pokemon] : nil
       end
 
       def pokemon_position
@@ -32,7 +37,11 @@ module Oakdex
       end
 
       def target
-        recall? ? @attributes[:target] : targets
+        recall? ? battle.pokemon_by_id(@attributes[:target]) : targets
+      end
+
+      def target_id
+        recall? ? @attributes[:target] : nil
       end
 
       def type
@@ -40,7 +49,8 @@ module Oakdex
       end
 
       def move
-        @attributes[:move]
+        return unless @attributes[:move]
+        @move ||= pokemon.moves.find { |m| m.name == @attributes[:move] } || Oakdex::Pokemon::Move.create(@attributes[:move])
       end
 
       def hitting_probability
@@ -52,8 +62,7 @@ module Oakdex
         @hitting == 1
       end
 
-      def execute(turn)
-        @turn = turn
+      def execute
         return execute_growth if growth?
         return execute_recall if recall?
         return execute_use_item if item?
@@ -68,7 +77,8 @@ module Oakdex
 
       def targets
         target_list.map do |target|
-          target_by_position(target[0], target[1])
+          side = battle.side_by_id(target[0])
+          target_by_position(side, target[1])
         end.compact
       end
 
@@ -81,6 +91,10 @@ module Oakdex
 
       def recall?
         type == 'recall'
+      end
+
+      def move?
+        type == 'move'
       end
 
       def item?

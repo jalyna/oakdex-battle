@@ -1,19 +1,19 @@
 require 'spec_helper'
 
 describe Oakdex::Battle::Action do
-  let(:pokemon1) { double(:pokemon, name: 'Pokemon1') }
-  let(:pokemon2) { double(:pokemon, name: 'Pokemon2') }
+  let(:pokemon1) { double(:pokemon, name: 'Pokemon1', id: 'p1', moves: [move1]) }
+  let(:pokemon2) { double(:pokemon, name: 'Pokemon2', id: 'p2') }
   let(:pokemon3) do
     double(:pokemon, name: 'Pokemon3',
-                     trainer: trainer2)
+                     trainer: trainer2, id: 'p3')
   end
   let(:pokemon4) do
     double(:pokemon, name: 'Pokemon4',
-                     trainer: trainer2)
+                     trainer: trainer2, id: 'p4')
   end
-  let(:side1) { double(:side) }
+  let(:side1) { double(:side, id: 'side1') }
   let(:active_in_battle_pokemon_list2) { [active_in_battle_pokemon2] }
-  let(:side2) { double(:side, active_in_battle_pokemon: active_in_battle_pokemon_list2) }
+  let(:side2) { double(:side, id: 'side2', active_in_battle_pokemon: active_in_battle_pokemon_list2) }
   let(:move1) do
     double(:move, name: 'Cool Move', priority: 0)
   end
@@ -41,12 +41,12 @@ describe Oakdex::Battle::Action do
     double(:active_in_battle_pokemon,
            position: 1, pokemon: pokemon4)
   end
-  let(:targets) { [side2, active_in_battle_pokemon2.position] }
+  let(:targets) { [side2.id, active_in_battle_pokemon2.position] }
   let(:move_attributes) do
     {
       action: 'move',
-      pokemon: pokemon1,
-      move: move1,
+      pokemon: pokemon1.id,
+      move: move1.name,
       target: targets
     }
   end
@@ -54,7 +54,7 @@ describe Oakdex::Battle::Action do
     {
       action: 'recall',
       pokemon: active_in_battle_pokemon1.position,
-      target: pokemon2
+      target: pokemon2.id
     }
   end
   let(:item_next_actions) { [] }
@@ -72,10 +72,22 @@ describe Oakdex::Battle::Action do
       option: 'a'
     }
   end
+  let(:battle) { double(:battle, sides: [side1, side2]) }
+  let(:turn) { double(:turn, battle: battle) }
   let(:attributes) { move_attributes }
+  before do
+    allow(battle).to receive(:side_by_id).with(side1.id).and_return(side1)
+    allow(battle).to receive(:side_by_id).with(side2.id).and_return(side2)
+    allow(battle).to receive(:pokemon_by_id).with(pokemon1.id).and_return(pokemon1)
+    allow(battle).to receive(:pokemon_by_id).with(pokemon2.id).and_return(pokemon2)
+    allow(battle).to receive(:pokemon_by_id).with(pokemon3.id).and_return(pokemon3)
+    allow(battle).to receive(:pokemon_by_id).with(pokemon4.id).and_return(pokemon4)
+  end
   subject { described_class.new(trainer1, attributes) }
 
   describe '#priority' do
+    before { subject.turn = turn }
+
     it 'returns moves priority' do
       expect(subject.priority).to eq(move1.priority)
     end
@@ -95,7 +107,27 @@ describe Oakdex::Battle::Action do
     end
   end
 
+  describe '#pokemon_id' do
+    it { expect(subject.pokemon_id).to eq(pokemon1.id) }
+
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
+      it { expect(subject.pokemon_id).to be_nil }
+    end
+  end
+
+  describe '#target_id' do
+    it { expect(subject.target_id).to be_nil }
+
+    context 'recall action' do
+      let(:attributes) { recall_attributes }
+      it { expect(subject.target_id).to eq(pokemon2.id) }
+    end
+  end
+
   describe '#pokemon' do
+    before { subject.turn = turn }
+
     it { expect(subject.pokemon).to eq(pokemon1) }
 
     context 'recall action' do
@@ -115,6 +147,8 @@ describe Oakdex::Battle::Action do
   end
 
   describe '#target' do
+    before { subject.turn = turn }
+
     it { expect(subject.target).to eq([pokemon3]) }
 
     context 'no in battle pokemon' do
@@ -138,6 +172,8 @@ describe Oakdex::Battle::Action do
   end
 
   describe '#move' do
+    before { subject.turn = turn }
+
     it { expect(subject.move).to eq(move1) }
 
     context 'recall action' do
@@ -147,8 +183,6 @@ describe Oakdex::Battle::Action do
   end
 
   describe '#execute' do
-    let(:battle) { double(:battle, sides: [side1, side2]) }
-    let(:turn) { double(:turn, battle: battle) }
     let(:move_execution) { double(:move_execution) }
     let(:move_execution2) { double(:move_execution2) }
 
@@ -160,21 +194,22 @@ describe Oakdex::Battle::Action do
         .with(pokemon1, side1)
       allow(trainer1).to receive(:send_to_battle)
         .with(pokemon2, side1)
+      subject.turn = turn
     end
 
     it 'executes move execution' do
       allow(Oakdex::Battle::MoveExecution).to receive(:new)
         .with(subject, pokemon3).and_return(move_execution)
       expect(move_execution).to receive(:execute)
-      subject.execute(turn)
+      subject.execute
     end
 
     context 'multiple targets' do
       let(:active_in_battle_pokemon_list2) { [active_in_battle_pokemon2, active_in_battle_pokemon3] }
       let(:targets) do
         [
-          [side2, active_in_battle_pokemon2.position],
-          [side2, active_in_battle_pokemon3.position]
+          [side2.id, active_in_battle_pokemon2.position],
+          [side2.id, active_in_battle_pokemon3.position]
         ]
       end
 
@@ -185,7 +220,7 @@ describe Oakdex::Battle::Action do
           .with(subject, pokemon4).and_return(move_execution2)
         expect(move_execution).to receive(:execute)
         expect(move_execution2).to receive(:execute)
-        subject.execute(turn)
+        subject.execute
       end
     end
 
@@ -203,7 +238,7 @@ describe Oakdex::Battle::Action do
         expect(growth_event).to receive(:execute).with('a')
         expect(growth_event2).to receive(:execute)
         expect(battle).to receive(:add_to_log).with('yuppie')
-        subject.execute(turn)
+        subject.execute
       end
     end
 
@@ -228,12 +263,12 @@ describe Oakdex::Battle::Action do
           .with('uses_item_on_pokemon', trainer1.name, team_pokemon1.name, 'Potion')
         expect(battle).to receive(:add_to_log)
           .with(trainer1.name, team_pokemon1.name, 'foobar')
-        subject.execute(turn)
+        subject.execute
       end
 
       it 'executes growth event' do
         expect(growth_event).to receive(:execute)
-        subject.execute(turn)
+        subject.execute
       end
 
       context 'when not read only' do
@@ -246,7 +281,7 @@ describe Oakdex::Battle::Action do
         it 'executes growth event' do
           expect(growth_event).to receive(:execute).with('my_action')
           expect(growth_event).to receive(:execute).with(no_args)
-          subject.execute(turn)
+          subject.execute
         end
       end
     end
@@ -257,7 +292,7 @@ describe Oakdex::Battle::Action do
       it 'adds log' do
         expect(battle).to receive(:add_to_log)
           .with('recalls', trainer1.name, pokemon1.name, pokemon2.name)
-        subject.execute(turn)
+        subject.execute
       end
 
       it 'switches pokemon' do
@@ -265,7 +300,7 @@ describe Oakdex::Battle::Action do
           .with(pokemon1, side1)
         expect(trainer1).to receive(:send_to_battle)
           .with(pokemon2, side1)
-        subject.execute(turn)
+        subject.execute
       end
 
       context 'no pokemon in battle' do
@@ -274,7 +309,7 @@ describe Oakdex::Battle::Action do
         it 'adds log' do
           expect(battle).to receive(:add_to_log)
             .with('recalls_for_fainted', trainer1.name, pokemon2.name)
-          subject.execute(turn)
+          subject.execute
         end
 
         it 'recalls pokemon' do
@@ -282,7 +317,7 @@ describe Oakdex::Battle::Action do
             .with(pokemon1, side1)
           expect(trainer1).to receive(:send_to_battle)
             .with(pokemon2, side1)
-          subject.execute(turn)
+          subject.execute
         end
       end
     end

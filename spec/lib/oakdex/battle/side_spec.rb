@@ -10,14 +10,18 @@ describe Oakdex::Battle::Side do
   let(:pokemon5) { double(:pokemon) }
   let(:team1) { [pokemon1, pokemon3] }
   let(:team2) { [pokemon2] }
-  let(:trainer1) { double(:trainer, team: team1) }
-  let(:trainer2) { double(:trainer, team: team2) }
+  let(:trainer1) { double(:trainer, team: team1, name: 'Trainer1') }
+  let(:trainer2) { double(:trainer, team: team2, name: 'Trainer2') }
   let(:trainers) { [trainer1, trainer2] }
   subject { described_class.new(battle, trainers) }
 
   before do
     allow(trainer1).to receive(:side=)
     allow(trainer2).to receive(:side=)
+  end
+
+  describe '#id' do
+    it { expect(subject.id).to eq('Trainer1,Trainer2') }
   end
 
   describe '#next_position' do

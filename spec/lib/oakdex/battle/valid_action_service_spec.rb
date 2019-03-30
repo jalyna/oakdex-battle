@@ -2,8 +2,8 @@ require 'spec_helper'
 
 describe Oakdex::Battle::ValidActionService do
   let(:next_position1) { 0 }
-  let(:pokemon1) { double(:pokemon) }
-  let(:pokemon2) { double(:pokemon) }
+  let(:pokemon1) { double(:pokemon, id: '12') }
+  let(:pokemon2) { double(:pokemon, id: '34') }
   let(:valid_move) { double(:valid_move) }
   let(:action_added) { false }
   let(:actions) { [] }
@@ -65,7 +65,7 @@ describe Oakdex::Battle::ValidActionService do
         {
           action: 'recall',
           pokemon: active_in_battle_pokemon1.position,
-          target: pokemon2
+          target: pokemon2.id
         }
       end
 
@@ -125,7 +125,7 @@ describe Oakdex::Battle::ValidActionService do
       end
 
       context 'recall action added' do
-        let(:action1) { double(:action, type: 'recall', target: pokemon2, trainer: trainer1) }
+        let(:action1) { double(:action, type: 'recall', target_id: pokemon2.id, trainer: trainer1) }
         let(:actions) { [action1] }
         it { expect(subject.valid_actions_for(trainer1)).to eq([valid_move]) }
       end
@@ -141,7 +141,7 @@ describe Oakdex::Battle::ValidActionService do
           {
             action: 'recall',
             pokemon: 0,
-            target: pokemon2
+            target: pokemon2.id
           }
         end
 
