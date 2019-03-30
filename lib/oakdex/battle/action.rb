@@ -50,7 +50,8 @@ module Oakdex
 
       def move
         return unless @attributes[:move]
-        @move ||= pokemon.moves.find { |m| m.name == @attributes[:move] } || Oakdex::Pokemon::Move.create(@attributes[:move])
+        @move ||= pokemon.moves.find { |m| m.name == @attributes[:move] }
+        @move ||= Oakdex::Pokemon::Move.create(@attributes[:move])
       end
 
       def hitting_probability

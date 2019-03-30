@@ -103,7 +103,7 @@ module Oakdex
     end
 
     def start
-      sides.each { |side| side.send_to_battle }
+      sides.each(&:send_to_battle)
       finish_turn
       true
     end
