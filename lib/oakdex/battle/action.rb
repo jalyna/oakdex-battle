@@ -29,29 +29,29 @@ module Oakdex
       end
 
       def pokemon_id
-        move? ? @attributes[:pokemon] : nil
+        move? ? @attributes['pokemon'] : nil
       end
 
       def pokemon_position
-        recall? ? @attributes[:pokemon] : nil
+        recall? ? @attributes['pokemon'] : nil
       end
 
       def target
-        recall? ? battle.pokemon_by_id(@attributes[:target]) : targets
+        recall? ? battle.pokemon_by_id(@attributes['target']) : targets
       end
 
       def target_id
-        recall? ? @attributes[:target] : nil
+        recall? ? @attributes['target'] : nil
       end
 
       def type
-        @attributes[:action]
+        @attributes['action']
       end
 
       def move
-        return unless @attributes[:move]
-        @move ||= pokemon.moves.find { |m| m.name == @attributes[:move] }
-        @move ||= Oakdex::Pokemon::Move.create(@attributes[:move])
+        return unless @attributes['move']
+        @move ||= pokemon.moves.find { |m| m.name == @attributes['move'] }
+        @move ||= Oakdex::Pokemon::Move.create(@attributes['move'])
       end
 
       def hitting_probability
@@ -71,7 +71,7 @@ module Oakdex
       end
 
       def item_id
-        @attributes[:item_id]
+        @attributes['item_id']
       end
 
       private
@@ -84,7 +84,7 @@ module Oakdex
       end
 
       def target_list
-        list = @attributes[:target]
+        list = @attributes['target']
         return [] if (list || []).empty?
         list = [list] unless list[0].is_a?(Array)
         list
@@ -108,11 +108,11 @@ module Oakdex
 
       def pokemon_by_position
         trainer.active_in_battle_pokemon
-          .find { |ibp| ibp.position == @attributes[:pokemon] }&.pokemon
+          .find { |ibp| ibp.position == @attributes['pokemon'] }&.pokemon
       end
 
       def pokemon_by_team_position
-        trainer.team[@attributes[:pokemon_team_pos]]
+        trainer.team[@attributes['pokemon_team_pos']]
       end
 
       def target_by_position(side, position)
@@ -135,11 +135,11 @@ module Oakdex
       end
 
       def item_actions
-        @attributes[:item_actions]
+        @attributes['item_actions']
       end
 
       def execute_growth
-        trainer.growth_event.execute(@attributes[:option])
+        trainer.growth_event.execute(@attributes['option'])
         while trainer.growth_event? && trainer.growth_event.read_only?
           e = trainer.growth_event
           add_log e.message

@@ -3,16 +3,16 @@ require 'spec_helper'
 describe Oakdex::Battle::InBattlePokemon do
   let(:primary_status_condition) { nil }
   let(:pokemon) do
-    double(:pokemon, {
-      hp: 17,
-      atk: 9,
-      def: 7,
-      sp_atk: 9,
-      sp_def: 8,
-      speed: 12,
-      primary_status_condition: primary_status_condition,
-      enable_battle_mode: nil
-    })
+    double(:pokemon,
+           hp: 17,
+           atk: 9,
+           def: 7,
+           sp_atk: 9,
+           sp_def: 8,
+           speed: 12,
+           primary_status_condition: primary_status_condition,
+           enable_battle_mode: nil
+          )
   end
 
   subject { described_class.new(pokemon) }

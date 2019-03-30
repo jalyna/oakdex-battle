@@ -75,7 +75,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
     let(:pokemon2) { double(:pokemon) }
     let(:active_in_battle_pokemon2) do
       double(:active_in_battle_pokemon, pokemon: pokemon2, side: side2,
-                                 position: 0)
+                                        position: 0)
     end
     let(:active_in_battle_pokemon3) do
       double(:active_in_battle_pokemon, side: side2, position: 1)
@@ -106,10 +106,10 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
     it 'returns all moves that have enough pp' do
       expect(subject.valid_move_actions).to eq([
                                                  {
-                                                   action: 'move',
-                                                   pokemon: pokemon.id,
-                                                   move: move1.name,
-                                                   target: [side2.id, 0]
+                                                   'action' => 'move',
+                                                   'pokemon' => pokemon.id,
+                                                   'move' => move1.name,
+                                                   'target' => [side2.id, 0]
                                                  }
                                                ])
     end
@@ -126,7 +126,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
       end
 
       it 'returns targets' do
-        expect(subject.valid_move_actions.map { |m| m[:target] })
+        expect(subject.valid_move_actions.map { |m| m['target'] })
           .to eq([[side2.id, 0], [side2.id, 1], [side.id, 1]])
       end
 
@@ -134,7 +134,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'target_adjacent_user_single' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[side.id, 1]])
         end
       end
@@ -143,7 +143,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'target_user_or_adjacent_user' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[side.id, 0], [side.id, 1]])
         end
       end
@@ -152,7 +152,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'user' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[side.id, 0]])
         end
       end
@@ -161,7 +161,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'user_and_random_adjacent_foe' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[side.id, 0]])
         end
       end
@@ -170,7 +170,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_users' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[[side.id, 0], [side.id, 1], [side.id, 2]]])
         end
       end
@@ -179,7 +179,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_adjacent' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[[side2.id, 0], [side2.id, 1], [side.id, 1]]])
         end
       end
@@ -188,7 +188,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'adjacent_foes_all' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[[side2.id, 0], [side2.id, 1]]])
         end
       end
@@ -197,7 +197,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_foes' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2]]])
         end
       end
@@ -206,7 +206,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all_except_user' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 1], [side.id, 2]]])
         end
       end
@@ -215,7 +215,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         let(:target) { 'all' }
 
         it 'returns targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 0],
                      [side.id, 1], [side.id, 2]]])
         end
@@ -229,7 +229,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
         end
 
         it 'returns available targets' do
-          expect(subject.valid_move_actions.map { |m| m[:target] })
+          expect(subject.valid_move_actions.map { |m| m['target'] })
             .to eq([[side2.id, 0], [side.id, 1]])
         end
 
@@ -237,7 +237,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
           let(:target) { 'all' }
 
           it 'returns targets' do
-            expect(subject.valid_move_actions.map { |m| m[:target] })
+            expect(subject.valid_move_actions.map { |m| m['target'] })
               .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 0],
                        [side.id, 1], [side.id, 2]]])
           end
@@ -251,7 +251,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
           end
 
           it 'returns available targets' do
-            expect(subject.valid_move_actions.map { |m| m[:target] })
+            expect(subject.valid_move_actions.map { |m| m['target'] })
               .to eq([[side2.id, 0], [side.id, 1]])
           end
 
@@ -259,7 +259,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
             let(:target) { 'all' }
 
             it 'returns targets' do
-              expect(subject.valid_move_actions.map { |m| m[:target] })
+              expect(subject.valid_move_actions.map { |m| m['target'] })
                 .to eq([[[side2.id, 0], [side2.id, 1], [side2.id, 2], [side.id, 0],
                          [side.id, 1], [side.id, 2]]])
             end
@@ -269,7 +269,7 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
             let(:target) { 'all_foes' }
 
             it 'returns targets' do
-              expect(subject.valid_move_actions.map { |m| m[:target] })
+              expect(subject.valid_move_actions.map { |m| m['target'] })
                 .to be_empty
             end
           end
@@ -292,10 +292,10 @@ describe Oakdex::Battle::ActiveInBattlePokemon do
       it 'returns struggle' do
         expect(subject.valid_move_actions).to eq([
                                                    {
-                                                     action: 'move',
-                                                     pokemon: pokemon.id,
-                                                     move: struggle_move.name,
-                                                     target: [side2.id, 0]
+                                                     'action' => 'move',
+                                                     'pokemon' => pokemon.id,
+                                                     'move' => struggle_move.name,
+                                                     'target' => [side2.id, 0]
                                                    }
                                                  ])
       end

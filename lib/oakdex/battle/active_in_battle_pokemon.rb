@@ -28,10 +28,10 @@ module Oakdex
         moves.flat_map do |move|
           targets_in_battle(move).map do |target|
             {
-              action: 'move',
-              pokemon: pokemon.id,
-              move: move.name,
-              target: target
+              'action' => 'move',
+              'pokemon' => pokemon.id,
+              'move' => move.name,
+              'target' => target
             }
           end
         end

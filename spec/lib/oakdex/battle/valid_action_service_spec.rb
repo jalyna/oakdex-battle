@@ -63,9 +63,9 @@ describe Oakdex::Battle::ValidActionService do
       let(:left_pokemon_in_team) { [pokemon2] }
       let(:recall_action) do
         {
-          action: 'recall',
-          pokemon: active_in_battle_pokemon1.position,
-          target: pokemon2.id
+          'action' => 'recall',
+          'pokemon' => active_in_battle_pokemon1.position,
+          'target' => pokemon2.id
         }
       end
 
@@ -93,19 +93,19 @@ describe Oakdex::Battle::ValidActionService do
 
       context 'growth event with actions present' do
         let(:trainer_growth_event) do
-          double(:growth_event, possible_actions: ['a', 'b'], read_only?: false)
+          double(:growth_event, possible_actions: %w[a b], read_only?: false)
         end
 
         it 'shows growth action' do
           expect(subject.valid_actions_for(trainer1))
             .to eq([{
-              action: 'growth_event',
-              option: 'a'
-            },
-            {
-              action: 'growth_event',
-              option: 'b'
-            }])
+                     'action' => 'growth_event',
+                     'option' => 'a'
+                   },
+                    {
+                      'action' => 'growth_event',
+                      'option' => 'b'
+                    }])
         end
 
         context 'growth event was chosen' do
@@ -139,9 +139,9 @@ describe Oakdex::Battle::ValidActionService do
         let(:active_in_battle_pokemon_list) { [] }
         let(:recall_action2) do
           {
-            action: 'recall',
-            pokemon: 0,
-            target: pokemon2.id
+            'action' => 'recall',
+            'pokemon' => 0,
+            'target' => pokemon2.id
           }
         end
 
@@ -174,18 +174,18 @@ describe Oakdex::Battle::ValidActionService do
           valid_actions = subject.valid_actions_for(trainer1)
           expect(valid_actions.size).to eq(3)
           expect(valid_actions[-1])
-            .to eq({
-              action: 'use_item_on_pokemon',
-              pokemon_team_pos: 0,
-              item_id: 'Potion',
-              item_actions: []
-            })
+            .to eq(
+              'action' => 'use_item_on_pokemon',
+              'pokemon_team_pos' => 0,
+              'item_id' => 'Potion',
+              'item_actions' => []
+            )
         end
 
         context 'item actions present' do
           before do
             allow(growth_event).to receive(:possible_actions)
-              .and_return(['a', 'b'])
+              .and_return(%w[a b])
             allow(growth_event).to receive(:read_only?)
               .and_return(false, false, false, true, false, true)
           end
@@ -195,17 +195,17 @@ describe Oakdex::Battle::ValidActionService do
             expect(valid_actions.size).to eq(4)
             expect(valid_actions[-2..-1])
               .to eq([{
-                action: 'use_item_on_pokemon',
-                pokemon_team_pos: 0,
-                item_id: 'Potion',
-                item_actions: ['a']
-              },
-              {
-                action: 'use_item_on_pokemon',
-                pokemon_team_pos: 0,
-                item_id: 'Potion',
-                item_actions: ['b']
-              }])
+                       'action' => 'use_item_on_pokemon',
+                       'pokemon_team_pos' => 0,
+                       'item_id' => 'Potion',
+                       'item_actions' => ['a']
+                     },
+                      {
+                        'action' => 'use_item_on_pokemon',
+                        'pokemon_team_pos' => 0,
+                        'item_id' => 'Potion',
+                        'item_actions' => ['b']
+                      }])
           end
         end
       end

@@ -44,32 +44,32 @@ describe Oakdex::Battle::Action do
   let(:targets) { [side2.id, active_in_battle_pokemon2.position] }
   let(:move_attributes) do
     {
-      action: 'move',
-      pokemon: pokemon1.id,
-      move: move1.name,
-      target: targets
+      'action' => 'move',
+      'pokemon' => pokemon1.id,
+      'move' => move1.name,
+      'target' => targets
     }
   end
   let(:recall_attributes) do
     {
-      action: 'recall',
-      pokemon: active_in_battle_pokemon1.position,
-      target: pokemon2.id
+      'action' => 'recall',
+      'pokemon' => active_in_battle_pokemon1.position,
+      'target' => pokemon2.id
     }
   end
   let(:item_next_actions) { [] }
   let(:use_item_on_pokemon_attributes) do
     {
-      action: 'use_item_on_pokemon',
-      pokemon_team_pos: 0,
-      item_id: 'Potion',
-      item_actions: item_next_actions
+      'action' => 'use_item_on_pokemon',
+      'pokemon_team_pos' => 0,
+      'item_id' => 'Potion',
+      'item_actions' => item_next_actions
     }
   end
   let(:growth_attributes) do
     {
-      action: 'growth_event',
-      option: 'a'
+      'action' => 'growth_event',
+      'option' => 'a'
     }
   end
   let(:battle) { double(:battle, sides: [side1, side2]) }
