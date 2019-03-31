@@ -92,6 +92,14 @@ module Oakdex
       nil
     end
 
+    def to_h
+      {
+        finished: finished?,
+        pokemon_per_side: pokemon_per_side,
+        sides: sides.map(&:to_h)
+      }
+    end
+
     private
 
     def valid_action_service

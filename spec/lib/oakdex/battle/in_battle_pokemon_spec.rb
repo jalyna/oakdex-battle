@@ -11,7 +11,8 @@ describe Oakdex::Battle::InBattlePokemon do
            sp_def: 8,
            speed: 12,
            primary_status_condition: primary_status_condition,
-           enable_battle_mode: nil
+           enable_battle_mode: nil,
+           to_h: { some: { hash: 'values' } }
           )
   end
 
@@ -42,6 +43,10 @@ describe Oakdex::Battle::InBattlePokemon do
         expect(subject.public_send(method)).to eq(value)
       end
     end
+  end
+
+  describe '#to_h' do
+    it { expect(subject.to_h).to eq({ id: subject.id, pokemon: pokemon.to_h }) }
   end
 
   describe '#accuracy' do

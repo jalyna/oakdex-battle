@@ -60,7 +60,7 @@ describe 'Battle simulation' do
 
   context '1 Trainer vs. 1 Trainer' do
     context '1 vs. 1' do
-      1.times do |i|
+      5.times do |i|
         it "executes battle simulation #{i}" do
           battle.continue
 
@@ -76,6 +76,12 @@ describe 'Battle simulation' do
 
           expect(battle.log).not_to be_empty
           expect(battle).to be_finished
+
+          expect(battle.to_h).to eq({
+            finished: true,
+            pokemon_per_side: 1,
+            sides: battle.sides.map(&:to_h)
+          })
         end
       end
     end

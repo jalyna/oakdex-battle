@@ -37,6 +37,10 @@ module Oakdex
         end
       end
 
+      def to_h
+        @pokemon.to_h
+      end
+
       private
 
       def targets_in_battle(move)

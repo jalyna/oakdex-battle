@@ -81,6 +81,15 @@ module Oakdex
         grow_team_pokemon(defeated_pokemon)
       end
 
+      def to_h
+        {
+          name: name,
+          items: items,
+          team: team.map(&:to_h),
+          active_in_battle_pokemon: active_in_battle_pokemon.map(&:to_h)
+        }
+      end
+
       private
 
       def battle

@@ -59,6 +59,14 @@ module Oakdex
         @id ||= trainers.map(&:name).join(',')
       end
 
+      def to_h
+        {
+          id: id,
+          fainted: fainted?,
+          trainers: trainers.map(&:to_h)
+        }
+      end
+
       private
 
       def pokemon_per_trainer

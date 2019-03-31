@@ -127,6 +127,13 @@ module Oakdex
         end
       end
 
+      def to_h
+        {
+          id: id,
+          pokemon: @pokemon.to_h
+        }
+      end
+
       private
 
       def status_condition_modifier(stat)
