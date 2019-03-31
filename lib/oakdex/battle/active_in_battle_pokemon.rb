@@ -38,7 +38,9 @@ module Oakdex
       end
 
       def to_h
-        @pokemon.to_h
+        {
+          id: id
+        }
       end
 
       private
