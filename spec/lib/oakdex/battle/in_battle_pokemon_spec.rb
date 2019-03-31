@@ -12,7 +12,7 @@ describe Oakdex::Battle::InBattlePokemon do
            speed: 12,
            primary_status_condition: primary_status_condition,
            enable_battle_mode: nil,
-           to_h: { some: { hash: 'values' } }
+           for_game: { some: { hash: 'values' } }
           )
   end
 
@@ -46,7 +46,7 @@ describe Oakdex::Battle::InBattlePokemon do
   end
 
   describe '#to_h' do
-    it { expect(subject.to_h).to eq({ id: subject.id, pokemon: pokemon.to_h }) }
+    it { expect(subject.to_h).to eq({ id: subject.id, pokemon: pokemon.for_game }) }
   end
 
   describe '#accuracy' do

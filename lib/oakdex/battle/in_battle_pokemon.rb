@@ -130,7 +130,7 @@ module Oakdex
       def to_h
         {
           id: id,
-          pokemon: @pokemon.to_h
+          pokemon: @pokemon.for_game
         }
       end
 
